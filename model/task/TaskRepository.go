@@ -1,35 +1,16 @@
 package task
 
-type Task struct {
-	ID         int64  `json:"id"`
-	FolderId   string `json:"folderId"`
-	FolderName string `json:"folderName"`
-	Status     string `json:"status"`
-}
-
-type TaskStatus int64
-
-const (
-	New TaskStatus = iota
-	Processing
-	Done
+import (
+	"github.com/LegendaryB/gogdl-ng/interfaces"
+	"github.com/LegendaryB/gogdl-ng/models"
 )
 
-func (ts TaskStatus) String() string {
-	switch ts {
-	case New:
-		return "new"
-	case Processing:
-		return "processing"
-	case Done:
-		return "done"
-	}
-
-	return "unknown"
+type TaskRepository struct {
+	TaskRepository interfaces.ITaskRepository
 }
 
-func (s *SQLite) GetAll() ([]Task, error) {
-	var tasks []Task
+func (s *SQLite) GetAll() ([]models.Task, error) {
+	var tasks []models.Task
 
 	var query = `SELECT ID, FolderId, FolderName, Status FROM tasks`
 
@@ -51,7 +32,7 @@ func (s *SQLite) GetAll() ([]Task, error) {
 			return tasks, err
 		}
 
-		task := Task{
+		task := models.Task{
 			ID:         id,
 			FolderId:   folderId,
 			FolderName: folderName,
@@ -64,8 +45,8 @@ func (s *SQLite) GetAll() ([]Task, error) {
 	return tasks, nil
 }
 
-func (s *SQLite) Get(id int64) (Task, error) {
-	var task Task
+func (s *SQLite) Get(id int64) (models.Task, error) {
+	var task models.Task
 
 	query := `SELECT FolderId, FolderName, Status FROM tasks WHERE ID=$1`
 
@@ -86,7 +67,7 @@ func (s *SQLite) Get(id int64) (Task, error) {
 			return task, err
 		}
 
-		task = Task{
+		task = models.Task{
 			ID:         id,
 			FolderId:   folderId,
 			FolderName: folderName,
@@ -97,10 +78,10 @@ func (s *SQLite) Get(id int64) (Task, error) {
 	return task, nil
 }
 
-func (s *SQLite) Create(task Task) (*Task, error) {
+func (s *SQLite) Create(task models.Task) (*models.Task, error) {
 	query := `INSERT INTO tasks(FolderId, FolderName, Status) VALUES($1, $2, $3);`
 
-	result, err := s.DB.Exec(query, task.FolderId, task.FolderName, New.String())
+	result, err := s.DB.Exec(query, task.FolderId, task.FolderName, models.New.String())
 
 	if err != nil {
 		return nil, err
@@ -121,7 +102,7 @@ func (s *SQLite) Create(task Task) (*Task, error) {
 	return &created, nil
 }
 
-func (s *SQLite) Update(task Task) error {
+func (s *SQLite) Update(task models.Task) error {
 	query := `UPDATE tasks SET FolderId=$1, FolderName=$2, Status=$3 WHERE ID=$4;`
 
 	_, err := s.DB.Exec(query, task.FolderId, task.FolderName, task.Status, task.ID)

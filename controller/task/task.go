@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/LegendaryB/gogdl-ng/model/task"
+	"github.com/LegendaryB/gogdl-ng/models"
 	"github.com/gorilla/mux"
 	"github.com/qkgo/yin"
 )
@@ -67,7 +68,7 @@ func CreateTask(store task.Store) http.HandlerFunc {
 		body := TaskPostBody{}
 		req.BindBody(&body)
 
-		insert := task.Task{
+		insert := models.Task{
 			FolderId:   body.FolderId,
 			FolderName: body.FolderName,
 		}
@@ -102,7 +103,7 @@ func DeleteTask(store task.Store) http.HandlerFunc {
 			return
 		}
 
-		if t.Status == task.Processing.String() {
+		if t.Status == models.Processing.String() {
 			res.SendStatus(http.StatusMethodNotAllowed)
 			return
 		}
