@@ -1,4 +1,4 @@
-package task
+package repositories
 
 import (
 	"github.com/LegendaryB/gogdl-ng/interfaces"

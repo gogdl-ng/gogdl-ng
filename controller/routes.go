@@ -4,17 +4,17 @@ import (
 	"net/http"
 
 	controller "github.com/LegendaryB/gogdl-ng/controller/task"
-	"github.com/LegendaryB/gogdl-ng/model/task"
+	"github.com/LegendaryB/gogdl-ng/interfaces"
 	"github.com/gorilla/mux"
 )
 
-func AddRoutes(router *mux.Router, taskStore task.Store) {
+func AddRoutes(router *mux.Router, repository interfaces.ITaskRepository) {
 	router.Use(jsonMiddleware)
 
-	router.HandleFunc("/api/v1/tasks", controller.GetAllTasks(taskStore)).Methods("GET")
-	router.HandleFunc("/api/v1/tasks/{id}", controller.GetTask(taskStore)).Methods("GET")
-	router.HandleFunc("/api/v1/tasks", controller.CreateTask(taskStore)).Methods("POST")
-	router.HandleFunc("/api/v1/tasks/{id}", controller.DeleteTask(taskStore)).Methods("GET")
+	router.HandleFunc("/api/v1/tasks", controller.GetAllTasks(repository)).Methods("GET")
+	router.HandleFunc("/api/v1/tasks/{id}", controller.GetTask(repository)).Methods("GET")
+	router.HandleFunc("/api/v1/tasks", controller.CreateTask(repository)).Methods("POST")
+	router.HandleFunc("/api/v1/tasks/{id}", controller.DeleteTask(repository)).Methods("GET")
 }
 
 func jsonMiddleware(next http.Handler) http.Handler {

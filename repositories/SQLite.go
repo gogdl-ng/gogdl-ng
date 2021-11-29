@@ -1,4 +1,4 @@
-package task
+package repositories
 
 import (
 	"database/sql"
@@ -10,7 +10,7 @@ type SQLite struct {
 	DB *sql.DB
 }
 
-func NewStore(conn *sql.DB) *SQLite {
+func NewTaskRepository(conn *sql.DB) *SQLite {
 	stmt, _ := conn.Prepare(`
 		CREATE TABLE IF NOT EXISTS
 			tasks (

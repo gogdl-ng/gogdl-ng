@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/LegendaryB/gogdl-ng/model/task"
+	"github.com/LegendaryB/gogdl-ng/interfaces"
 	"github.com/LegendaryB/gogdl-ng/models"
 	"github.com/gorilla/mux"
 	"github.com/qkgo/yin"
@@ -15,10 +15,10 @@ type TaskPostBody struct {
 	FolderName string `json:"folderName"`
 }
 
-func GetAllTasks(store task.Store) http.HandlerFunc {
+func GetAllTasks(repository interfaces.ITaskRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		res, _ := yin.Event(w, r)
-		tasks, err := store.GetAll()
+		tasks, err := repository.GetAll()
 
 		if err != nil {
 			res.SendStatus(http.StatusInternalServerError)
@@ -34,7 +34,7 @@ func GetAllTasks(store task.Store) http.HandlerFunc {
 	}
 }
 
-func GetTask(store task.Store) http.HandlerFunc {
+func GetTask(repository interfaces.ITaskRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		res, _ := yin.Event(w, r)
 		param := mux.Vars(r)["id"]
@@ -46,7 +46,7 @@ func GetTask(store task.Store) http.HandlerFunc {
 			return
 		}
 
-		t, err := store.Get(id)
+		t, err := repository.Get(id)
 
 		if err != nil {
 			res.SendStatus(http.StatusInternalServerError)
@@ -62,7 +62,7 @@ func GetTask(store task.Store) http.HandlerFunc {
 	}
 }
 
-func CreateTask(store task.Store) http.HandlerFunc {
+func CreateTask(repository interfaces.ITaskRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		res, req := yin.Event(w, r)
 		body := TaskPostBody{}
@@ -73,7 +73,7 @@ func CreateTask(store task.Store) http.HandlerFunc {
 			FolderName: body.FolderName,
 		}
 
-		t, err := store.Create(insert)
+		t, err := repository.Create(insert)
 
 		if err != nil {
 			res.SendStatus(http.StatusInternalServerError)
@@ -84,7 +84,7 @@ func CreateTask(store task.Store) http.HandlerFunc {
 	}
 }
 
-func DeleteTask(store task.Store) http.HandlerFunc {
+func DeleteTask(repository interfaces.ITaskRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		res, _ := yin.Event(w, r)
 		param := mux.Vars(r)["id"]
@@ -96,7 +96,7 @@ func DeleteTask(store task.Store) http.HandlerFunc {
 			return
 		}
 
-		t, err := store.Get(id)
+		t, err := repository.Get(id)
 
 		if err != nil {
 			res.SendStatus(http.StatusNotFound)
@@ -108,7 +108,7 @@ func DeleteTask(store task.Store) http.HandlerFunc {
 			return
 		}
 
-		err = store.Delete(id)
+		err = repository.Delete(id)
 
 		if err != nil {
 			res.SendStatus(http.StatusInternalServerError)
