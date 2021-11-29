@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"fmt"
+
 	"github.com/LegendaryB/gogdl-ng/interfaces"
 	"github.com/LegendaryB/gogdl-ng/models"
 )
@@ -12,9 +14,7 @@ type TaskRepository struct {
 func (s *SQLite) GetAll() ([]models.Task, error) {
 	var tasks []models.Task
 
-	var query = `SELECT ID, FolderId, FolderName, Status FROM tasks`
-
-	rows, err := s.DB.Query(query)
+	rows, err := s.DB.Query("SELECT ID, FolderId, FolderName, Status FROM tasks")
 
 	if err != nil {
 		return tasks, err
@@ -48,9 +48,9 @@ func (s *SQLite) GetAll() ([]models.Task, error) {
 func (s *SQLite) Get(id int64) (models.Task, error) {
 	var task models.Task
 
-	query := `SELECT FolderId, FolderName, Status FROM tasks WHERE ID=$1`
+	query := fmt.Sprintf("SELECT FolderId, FolderName, Status FROM tasks WHERE ID=%d", id)
 
-	row, err := s.DB.Query(query, id)
+	row, err := s.DB.Query(query)
 
 	if err != nil {
 		return task, err
@@ -79,9 +79,9 @@ func (s *SQLite) Get(id int64) (models.Task, error) {
 }
 
 func (s *SQLite) Create(task models.Task) (*models.Task, error) {
-	query := `INSERT INTO tasks(FolderId, FolderName, Status) VALUES($1, $2, $3);`
+	query := fmt.Sprintf("INSERT INTO tasks(FolderId, FolderName, Status) VALUES('%s', '%s', '%s');", task.FolderId, task.FolderName, models.New.String())
 
-	result, err := s.DB.Exec(query, task.FolderId, task.FolderName, models.New.String())
+	result, err := s.DB.Exec(query)
 
 	if err != nil {
 		return nil, err
@@ -103,9 +103,9 @@ func (s *SQLite) Create(task models.Task) (*models.Task, error) {
 }
 
 func (s *SQLite) Update(task models.Task) error {
-	query := `UPDATE tasks SET FolderId=$1, FolderName=$2, Status=$3 WHERE ID=$4;`
+	query := fmt.Sprintf("UPDATE tasks SET FolderId=%s, FolderName=%s, Status=%s WHERE ID=%d;", task.FolderId, task.FolderName, task.Status, task.ID)
 
-	_, err := s.DB.Exec(query, task.FolderId, task.FolderName, task.Status, task.ID)
+	_, err := s.DB.Exec(query)
 
 	if err != nil {
 		return err
@@ -115,7 +115,7 @@ func (s *SQLite) Update(task models.Task) error {
 }
 
 func (s *SQLite) Delete(id int64) error {
-	query := `DELETE FROM tasks WHERE ID=$1;`
+	query := fmt.Sprintf("DELETE FROM tasks WHERE ID=%d;", id)
 
 	_, err := s.DB.Exec(query, id)
 
