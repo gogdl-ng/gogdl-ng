@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/LegendaryB/gogdl-ng/controller"
+	"github.com/LegendaryB/gogdl-ng/controllers"
 	"github.com/LegendaryB/gogdl-ng/repositories"
 	"github.com/gorilla/mux"
 )
@@ -16,6 +16,6 @@ func main() {
 
 	router := mux.NewRouter()
 
-	controller.AddRoutes(router, tasks)
+	controllers.AddRoutes(router, tasks)
 	log.Fatal(http.ListenAndServe(":3200", router))
 }
