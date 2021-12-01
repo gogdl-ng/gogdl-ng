@@ -8,8 +8,6 @@ import (
 	"github.com/LegendaryB/gogdl-ng/app/middlewares"
 	"github.com/LegendaryB/gogdl-ng/app/persistence"
 	"github.com/gorilla/mux"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 type App struct {
