@@ -12,7 +12,7 @@ type DbContext struct {
 	Tasks *task.Repository
 }
 
-func CreateDbContext() (*DbContext, error) {
+func NewDbContext() (*DbContext, error) {
 	db, err := sql.Open("sqlite3", "./gogdl.db")
 
 	if err != nil {

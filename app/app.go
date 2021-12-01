@@ -18,7 +18,7 @@ type App struct {
 }
 
 func (app *App) Run() {
-	dbContext, err := persistence.CreateDbContext()
+	dbContext, err := persistence.NewDbContext()
 
 	if err != nil {
 		log.Fatal("Failed to create database context!")
