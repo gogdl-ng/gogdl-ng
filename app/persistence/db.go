@@ -13,7 +13,7 @@ type DbContext struct {
 }
 
 func NewDbContext() (*DbContext, error) {
-	db, err := sql.Open("sqlite3", "./config/gogdl.db")
+	db, err := sql.Open("sqlite3", "./config/gogdl-ng.db")
 
 	if err != nil {
 		return nil, err
