@@ -1,11 +1,18 @@
-FROM golang:alpine
+FROM golang:1.16-alpine
+VOLUME config downloads
 
-RUN mkdir -p /var/www
+WORKDIR /app
 
-WORKDIR /var/www
+# Download necessary Go modules
+COPY go.mod ./
+COPY go.sum ./
+RUN go mod download
 
-COPY . /var/www
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app
+# Copy source files
+COPY *.go ./
+
+# Build
+RUN go build -o /gogdl-ng
 
 EXPOSE 3200
-ENTRYPOINT ["/var/www/app"]
+ENTRYPOINT ["/gogdl-ng"]

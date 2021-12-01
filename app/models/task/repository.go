@@ -1,20 +1,23 @@
-package repositories
+package task
 
 import (
+	"database/sql"
 	"fmt"
-
-	"github.com/LegendaryB/gogdl-ng/interfaces"
-	"github.com/LegendaryB/gogdl-ng/models"
 )
 
-type TaskRepository struct {
-	TaskRepository interfaces.ITaskRepository
+type Repository struct {
+	DB *sql.DB
 }
 
-func (s *SQLite) GetAll() ([]models.Task, error) {
-	var tasks []models.Task
+func New(db *sql.DB) *Repository {
+	repository := &Repository{db}
+	return repository
+}
 
-	rows, err := s.DB.Query("SELECT ID, FolderId, FolderName, Status FROM tasks")
+func (repository *Repository) GetAll() ([]Task, error) {
+	var tasks []Task
+
+	rows, err := repository.DB.Query("SELECT ID, FolderId, FolderName, Status FROM tasks")
 
 	if err != nil {
 		return tasks, err
@@ -32,7 +35,7 @@ func (s *SQLite) GetAll() ([]models.Task, error) {
 			return tasks, err
 		}
 
-		task := models.Task{
+		task := Task{
 			ID:         id,
 			FolderId:   folderId,
 			FolderName: folderName,
@@ -45,12 +48,12 @@ func (s *SQLite) GetAll() ([]models.Task, error) {
 	return tasks, nil
 }
 
-func (s *SQLite) Get(id int64) (models.Task, error) {
-	var task models.Task
+func (repository *Repository) Get(id int64) (Task, error) {
+	var task Task
 
 	query := fmt.Sprintf("SELECT FolderId, FolderName, Status FROM tasks WHERE ID=%d", id)
 
-	row, err := s.DB.Query(query)
+	row, err := repository.DB.Query(query)
 
 	if err != nil {
 		return task, err
@@ -67,7 +70,7 @@ func (s *SQLite) Get(id int64) (models.Task, error) {
 			return task, err
 		}
 
-		task = models.Task{
+		task = Task{
 			ID:         id,
 			FolderId:   folderId,
 			FolderName: folderName,
@@ -78,10 +81,10 @@ func (s *SQLite) Get(id int64) (models.Task, error) {
 	return task, nil
 }
 
-func (s *SQLite) Create(task models.Task) (*models.Task, error) {
-	query := fmt.Sprintf("INSERT INTO tasks(FolderId, FolderName, Status) VALUES('%s', '%s', '%s');", task.FolderId, task.FolderName, models.New.String())
+func (repository *Repository) Create(task Task) (*Task, error) {
+	query := fmt.Sprintf("INSERT INTO tasks(FolderId, FolderName, Status) VALUES('%s', '%s', '%s');", task.FolderId, task.FolderName, Created.String())
 
-	result, err := s.DB.Exec(query)
+	result, err := repository.DB.Exec(query)
 
 	if err != nil {
 		return nil, err
@@ -93,7 +96,7 @@ func (s *SQLite) Create(task models.Task) (*models.Task, error) {
 		return nil, err
 	}
 
-	created, err := s.Get(id)
+	created, err := repository.Get(id)
 
 	if err != nil {
 		return nil, err
@@ -102,10 +105,10 @@ func (s *SQLite) Create(task models.Task) (*models.Task, error) {
 	return &created, nil
 }
 
-func (s *SQLite) Update(task models.Task) error {
+func (repository *Repository) Update(task Task) error {
 	query := fmt.Sprintf("UPDATE tasks SET FolderId=%s, FolderName=%s, Status=%s WHERE ID=%d;", task.FolderId, task.FolderName, task.Status, task.ID)
 
-	_, err := s.DB.Exec(query)
+	_, err := repository.DB.Exec(query)
 
 	if err != nil {
 		return err
@@ -114,10 +117,10 @@ func (s *SQLite) Update(task models.Task) error {
 	return nil
 }
 
-func (s *SQLite) Delete(id int64) error {
+func (repository *Repository) Delete(id int64) error {
 	query := fmt.Sprintf("DELETE FROM tasks WHERE ID=%d;", id)
 
-	_, err := s.DB.Exec(query, id)
+	_, err := repository.DB.Exec(query, id)
 
 	if err != nil {
 		return err
