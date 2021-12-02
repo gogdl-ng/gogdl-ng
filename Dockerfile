@@ -1,5 +1,4 @@
 FROM golang:1.16-alpine as build
-VOLUME config downloads
 
 # gcc build base 
 RUN apk add build-base && \ 
@@ -11,7 +10,9 @@ WORKDIR /build
 RUN go build -o gogdl-ng .
 
 FROM golang:1.16-alpine
-# Create app folder and move binary, afterwards delete build 
+VOLUME config downloads
+
+# Create app folder and move binary
 WORKDIR /
 RUN mkdir -p /app
 
