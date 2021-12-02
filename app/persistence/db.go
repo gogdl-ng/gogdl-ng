@@ -3,6 +3,7 @@ package persistence
 import (
 	"database/sql"
 
+	"github.com/LegendaryB/gogdl-ng/app/environment"
 	"github.com/LegendaryB/gogdl-ng/app/models/task"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -13,7 +14,13 @@ type DbContext struct {
 }
 
 func NewDbContext() (*DbContext, error) {
-	db, err := sql.Open("sqlite3", "./config/gogdl-ng.db")
+	dbFilePath, err := environment.GetDatabaseFilePath()
+
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := sql.Open("sqlite3", dbFilePath)
 
 	if err != nil {
 		return nil, err
