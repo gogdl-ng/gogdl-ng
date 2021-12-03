@@ -12,4 +12,12 @@
 
 * A Google Cloud Platform project with the Drive API enabled ([Guide](https://developers.google.com/drive/api/v3/quickstart/go#step_1_turn_on_the)).
 
-## Usage
+## Collaborators
+
+<!-- readme: collaborators -start -->
+<!-- readme: collaborators -end -->
+
+## Contributors
+
+<!-- readme: contributors -start -->
+<!-- readme: contributors -end -->
