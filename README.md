@@ -12,21 +12,6 @@
 
 * A Google Cloud Platform project with the Drive API enabled ([Guide](https://developers.google.com/drive/api/v3/quickstart/go#step_1_turn_on_the)).
 
-## Collaborators
-
-<!-- readme: collaborators -start -->
-<table>
-<tr>
-    <td align="center">
-        <a href="https://github.com/LegendaryB">
-            <img src="https://avatars.githubusercontent.com/u/6391022?v=4" width="100;" alt="LegendaryB"/>
-            <br />
-            <sub><b>Daniel</b></sub>
-        </a>
-    </td></tr>
-</table>
-<!-- readme: collaborators -end -->
-
 ## Contributors
 
 <!-- readme: contributors -start -->
