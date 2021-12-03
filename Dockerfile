@@ -1,22 +1,22 @@
-FROM golang:1.16-alpine
-VOLUME config downloads
+FROM golang:1.16-alpine as build
 
 # gcc build base 
-RUN apk add build-base
+RUN apk add build-base && \ 
+    mkdir -p /build
 
-# Build
-RUN mkdir -p /build
+#build
 COPY . /build
 WORKDIR /build
 RUN go build -o gogdl-ng .
 
+FROM golang:1.16-alpine
+VOLUME config downloads
+
 # Create app folder and move binary
 WORKDIR /
 RUN mkdir -p /app
-RUN cp /build/gogdl-ng /app/
 
-# Cleanup
-RUN rm -r /build
+COPY --from=build /build/gogdl-ng ./app/
 
 EXPOSE 3200
 
