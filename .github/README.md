@@ -1,4 +1,4 @@
-<img alt="gogdl-ng" height="60" src="https://raw.githubusercontent.com/LegendaryB/gogdl-ng/dev/assets/banner.png">
+<p align="center"><img alt="gogdl-ng" height="60" src="https://raw.githubusercontent.com/LegendaryB/gogdl-ng/dev/assets/banner.png"></p>
 
 ## 🏁 Getting started
 
