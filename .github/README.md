@@ -1,4 +1,4 @@
-# gogdl-ng
+<img alt="gogdl-ng" height="60" src="https://raw.githubusercontent.com/LegendaryB/assets/dev/static/banner.png">
 
 ## 🏁 Getting started
 

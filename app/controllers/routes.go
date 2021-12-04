@@ -1,13 +1,14 @@
 package controllers
 
 import (
-	"github.com/LegendaryB/gogdl-ng/app/models/task"
+	"github.com/LegendaryB/gogdl-ng/app/persistence"
+
 	"github.com/gorilla/mux"
 )
 
-func AddRoutes(router *mux.Router, repository *task.Repository) {
-	router.HandleFunc("/tasks", GetAllTasks(repository)).Methods("GET")
-	router.HandleFunc("/tasks/{id}", GetTask(repository)).Methods("GET")
-	router.HandleFunc("/tasks", CreateTask(repository)).Methods("POST")
-	router.HandleFunc("/tasks/{id}", DeleteTask(repository)).Methods("GET")
+func AddRoutes(router *mux.Router, dbContext *persistence.DbContext) {
+	router.HandleFunc("/tasks", GetAllTasks(dbContext.Tasks)).Methods("GET")
+	router.HandleFunc("/tasks/{id}", GetTask(dbContext.Tasks)).Methods("GET")
+	router.HandleFunc("/tasks", CreateTask(dbContext.Tasks)).Methods("POST")
+	router.HandleFunc("/tasks/{id}", DeleteTask(dbContext.Tasks)).Methods("GET")
 }

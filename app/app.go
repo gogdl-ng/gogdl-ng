@@ -26,7 +26,7 @@ func (app *App) Run() {
 	app.DbContext = dbContext
 
 	app.Router.Use(middlewares.JSONMiddleware)
-	controllers.AddRoutes(app.Router, app.DbContext.Tasks)
+	controllers.AddRoutes(app.Router, app.DbContext)
 
 	log.Fatal(http.ListenAndServe(":3200", app.Router))
 }
