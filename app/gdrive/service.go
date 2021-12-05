@@ -21,7 +21,7 @@ const (
 	tokenFileName       = "token.json"
 )
 
-var Service *drive.Service
+var service *drive.Service
 
 func New() error {
 	configurationDirectory, err := environment.GetConfigurationDirectory()
@@ -48,7 +48,7 @@ func New() error {
 		return err
 	}
 
-	Service = driveService
+	service = driveService
 
 	return nil
 }

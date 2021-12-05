@@ -12,7 +12,7 @@ type DriveFolder struct {
 }
 
 func Folder(id string) (*DriveFolder, error) {
-	fileCall := Service.Files.Get(id).
+	fileCall := service.Files.Get(id).
 		SupportsAllDrives(true).
 		SupportsTeamDrives(true)
 
