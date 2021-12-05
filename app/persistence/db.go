@@ -8,44 +8,40 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var Database *sql.DB
-
-func NewDatabase() error {
+func NewDatabase() (*sql.DB, error) {
 	dbFilePath, err := environment.GetDatabaseFilePath()
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	db, err := sql.Open("sqlite3", dbFilePath)
 
 	if err != nil {
+		return nil, err
+	}
+
+	if err = createTables(db); err != nil {
+		return nil, err
+	}
+
+	return db, err
+}
+
+func createTables(db *sql.DB) error {
+	if err := createTableForTasks(db); err != nil {
 		return err
 	}
 
-	Database = db
-
-	if err = createTables(); err != nil {
+	if err := createTableForDownloads(db); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func createTables() error {
-	if err := createTableForTasks(); err != nil {
-		return err
-	}
-
-	if err := createTableForDownloads(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func createTableForTasks() error {
-	err := createTable(
+func createTableForTasks(db *sql.DB) error {
+	err := createTable(db,
 		`CREATE TABLE IF NOT EXISTS
 			tasks (
 				Id			INTEGER UNIQUE,
@@ -59,8 +55,8 @@ func createTableForTasks() error {
 	return err
 }
 
-func createTableForDownloads() error {
-	err := createTable(
+func createTableForDownloads(db *sql.DB) error {
+	err := createTable(db,
 		`CREATE TABLE IF NOT EXISTS 
 			downloads (
 				Id			INTEGER UNIQUE,
@@ -76,8 +72,8 @@ func createTableForDownloads() error {
 	return err
 }
 
-func createTable(statement string) error {
-	stmt, err := Database.Prepare(statement)
+func createTable(db *sql.DB, statement string) error {
+	stmt, err := db.Prepare(statement)
 
 	if err != nil {
 		return err

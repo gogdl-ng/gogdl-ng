@@ -13,11 +13,13 @@ import (
 )
 
 func Run() {
-	if err := persistence.NewDatabase(); err != nil {
+	db, err := persistence.NewDatabase()
+
+	if err != nil {
 		log.Fatalf("Failed to create database context: %v", err)
 	}
 
-	if err := task.NewRepository(); err != nil {
+	if err := task.NewRepository(db); err != nil {
 		log.Fatalf("Failed to create task repository: %v", err)
 	}
 
