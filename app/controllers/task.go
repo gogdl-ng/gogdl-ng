@@ -4,20 +4,21 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/LegendaryB/gogdl-ng/app/environment"
+	"github.com/LegendaryB/gogdl-ng/app/gdrive"
 	"github.com/LegendaryB/gogdl-ng/app/models/task"
 	"github.com/gorilla/mux"
 	"github.com/qkgo/yin"
 )
 
 type TaskPostBody struct {
-	FolderId   string `json:"folderId"`
-	FolderName string `json:"folderName"`
+	DriveId string `json:"driveId"`
 }
 
-func GetAllTasks(repository *task.Repository) http.HandlerFunc {
+func GetAllTasks() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		res, _ := yin.Event(w, r)
-		tasks, err := repository.GetAll()
+		tasks, err := task.Repository.GetAll()
 
 		if err != nil {
 			res.SendStatus(http.StatusInternalServerError)
@@ -33,7 +34,7 @@ func GetAllTasks(repository *task.Repository) http.HandlerFunc {
 	}
 }
 
-func GetTask(repository *task.Repository) http.HandlerFunc {
+func GetTask() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		res, _ := yin.Event(w, r)
 		param := mux.Vars(r)["id"]
@@ -45,14 +46,14 @@ func GetTask(repository *task.Repository) http.HandlerFunc {
 			return
 		}
 
-		t, err := repository.Get(id)
+		t, err := task.Repository.Get(id)
 
 		if err != nil {
 			res.SendStatus(http.StatusInternalServerError)
 			return
 		}
 
-		if t.ID <= 0 {
+		if t.Id <= 0 {
 			res.SendStatus(http.StatusNotFound)
 			return
 		}
@@ -61,18 +62,37 @@ func GetTask(repository *task.Repository) http.HandlerFunc {
 	}
 }
 
-func CreateTask(repository *task.Repository) http.HandlerFunc {
+func CreateTask() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		res, req := yin.Event(w, r)
 		body := TaskPostBody{}
 		req.BindBody(&body)
 
-		insert := task.Task{
-			FolderId:   body.FolderId,
-			FolderName: body.FolderName,
+		res.SendJSON(yin.H{
+			"result": "",
+		})
+
+		folder, err := gdrive.Folder(body.DriveId)
+
+		if err != nil {
+			res.SendStatus(http.StatusNotFound)
+			return
 		}
 
-		t, err := repository.Create(insert)
+		path, err := environment.CreateTaskDirectory(folder.Name)
+
+		if err != nil {
+			res.SendStatus(http.StatusInternalServerError)
+			return
+		}
+
+		insert := task.Task{
+			DriveId:   body.DriveId,
+			DriveName: folder.Name,
+			LocalPath: path,
+		}
+
+		t, err := task.Repository.Create(insert)
 
 		if err != nil {
 			res.SendStatus(http.StatusInternalServerError)
@@ -83,7 +103,7 @@ func CreateTask(repository *task.Repository) http.HandlerFunc {
 	}
 }
 
-func DeleteTask(repository *task.Repository) http.HandlerFunc {
+func DeleteTask() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		res, _ := yin.Event(w, r)
 		param := mux.Vars(r)["id"]
@@ -95,19 +115,12 @@ func DeleteTask(repository *task.Repository) http.HandlerFunc {
 			return
 		}
 
-		t, err := repository.Get(id)
-
 		if err != nil {
 			res.SendStatus(http.StatusNotFound)
 			return
 		}
 
-		if t.Status == task.Processing.String() {
-			res.SendStatus(http.StatusMethodNotAllowed)
-			return
-		}
-
-		err = repository.Delete(id)
+		err = task.Repository.Delete(id)
 
 		if err != nil {
 			res.SendStatus(http.StatusInternalServerError)

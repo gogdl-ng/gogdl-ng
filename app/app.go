@@ -5,34 +5,31 @@ import (
 	"net/http"
 
 	"github.com/LegendaryB/gogdl-ng/app/controllers"
+	"github.com/LegendaryB/gogdl-ng/app/gdrive"
 	"github.com/LegendaryB/gogdl-ng/app/middlewares"
+	"github.com/LegendaryB/gogdl-ng/app/models/task"
 	"github.com/LegendaryB/gogdl-ng/app/persistence"
 	"github.com/gorilla/mux"
 )
 
-type App struct {
-	Router    *mux.Router
-	DbContext *persistence.DbContext
-}
-
-func (app *App) Run() {
-	dbContext, err := persistence.NewDbContext()
-
-	if err != nil {
-		log.Fatal("Failed to create database context!")
+func Run() {
+	if err := persistence.NewDatabase(); err != nil {
+		log.Fatalf("Failed to create database context: %v", err)
 	}
 
-	app.Router = createRouter()
-	app.DbContext = dbContext
+	if err := task.NewRepository(); err != nil {
+		log.Fatalf("Failed to create task repository: %v", err)
+	}
 
-	app.Router.Use(middlewares.JSONMiddleware)
-	controllers.AddRoutes(app.Router, app.DbContext)
+	if err := gdrive.New(); err != nil {
+		log.Fatalf("Failed to create drive service: %v", err)
+	}
 
-	log.Fatal(http.ListenAndServe(":3200", app.Router))
-}
-
-func createRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
+	router = router.PathPrefix("/api/v1").Subrouter()
 
-	return router.PathPrefix("/api/v1").Subrouter()
+	router.Use(middlewares.JSONMiddleware)
+	controllers.AddRoutes(router)
+
+	log.Fatal(http.ListenAndServe(":3200", router))
 }

@@ -7,6 +7,10 @@
 #### Requirements
 
 ## 🎯 Features
+* Google Drive v3 API based
+* OAuth 2.0 authorization
+* 
+* 
 
 ## 🔨 Contributors
 

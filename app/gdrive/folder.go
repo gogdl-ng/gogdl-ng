@@ -8,15 +8,37 @@ import (
 
 const FOLDER_MIMETYPE = "application/vnd.google-apps.folder"
 
-func EnsureIsFolder(drive *drive.Service, folderId string) error {
-	item, err := drive.Files.Get(folderId).Do()
+type DriveFolder struct {
+	Id   string
+	Name string
+}
+
+func Folder(id string) (*DriveFolder, error) {
+	fileCall := Service.Files.Get(id).
+		SupportsAllDrives(true).
+		SupportsTeamDrives(true)
+
+	file, err := fileCall.Do()
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if item.MimeType != FOLDER_MIMETYPE {
-		return fmt.Errorf("item with id '%v' is not a folder", folderId)
+	err = ensureIsFolder(file)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &DriveFolder{
+		Id:   file.Id,
+		Name: file.Name,
+	}, err
+}
+
+func ensureIsFolder(file *drive.File) error {
+	if file.MimeType != FOLDER_MIMETYPE {
+		return fmt.Errorf("resource with id '%s' is not a folder", file.Id)
 	}
 
 	return nil

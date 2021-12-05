@@ -4,48 +4,80 @@ import (
 	"database/sql"
 
 	"github.com/LegendaryB/gogdl-ng/app/environment"
-	"github.com/LegendaryB/gogdl-ng/app/models/task"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type DbContext struct {
-	Tasks *task.Repository
-}
+var Database *sql.DB
 
-func NewDbContext() (*DbContext, error) {
+func NewDatabase() error {
 	dbFilePath, err := environment.GetDatabaseFilePath()
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	db, err := sql.Open("sqlite3", dbFilePath)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if err = createTasksTable(db); err != nil {
-		return nil, err
+	Database = db
+
+	if err = createTables(); err != nil {
+		return err
 	}
 
-	context := &DbContext{}
-	context.Tasks = &task.Repository{DB: db}
-
-	return context, nil
+	return nil
 }
 
-func createTasksTable(db *sql.DB) error {
-	stmt, err := db.Prepare(`
-		CREATE TABLE IF NOT EXISTS
+func createTables() error {
+	if err := createTableForTasks(); err != nil {
+		return err
+	}
+
+	if err := createTableForDownloads(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createTableForTasks() error {
+	err := createTable(
+		`CREATE TABLE IF NOT EXISTS
 			tasks (
-				ID	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-				FolderId   TEXT,
-				FolderName TEXT,
-				Status	   TEXT CHECK( Status IN ('new','processing','done') )
-			);
-	`)
+				Id			INTEGER UNIQUE,
+				DriveId		INTEGER NOT NULL UNIQUE,
+				DriveName	TEXT NOT NULL,
+				LocalPath	TEXT NOT NULL UNIQUE,
+				IsCompleted	INTEGER NOT NULL,
+				PRIMARY KEY(Id AUTOINCREMENT)
+			)`)
+
+	return err
+}
+
+func createTableForDownloads() error {
+	err := createTable(
+		`CREATE TABLE IF NOT EXISTS 
+			downloads (
+				Id			INTEGER UNIQUE,
+				TaskId		INTEGER NOT NULL,
+				DriveId		TEXT NOT NULL UNIQUE,
+				DriveName	TEXT NOT NULL,
+				DriveHash	TEXT NOT NULL,
+				LocalPath	TEXT NOT NULL UNIQUE,
+				PRIMARY KEY(Id AUTOINCREMENT),
+				FOREIGN KEY(TaskId) REFERENCES tasks(id)
+			)`)
+
+	return err
+}
+
+func createTable(statement string) error {
+	stmt, err := Database.Prepare(statement)
 
 	if err != nil {
 		return err

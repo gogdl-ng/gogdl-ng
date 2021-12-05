@@ -5,6 +5,5 @@ import (
 )
 
 func main() {
-	app := &app.App{}
 	app.Run()
 }
