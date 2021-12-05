@@ -9,8 +9,7 @@
 ## 🎯 Features
 * Google Drive v3 API based
 * OAuth 2.0 authorization
-* 
-* 
+* Hassle free setup thanks to Docker + SQLite 3
 
 ## 🔨 Contributors
 
