@@ -87,7 +87,7 @@ func CreateTask() http.HandlerFunc {
 		}
 
 		insert := task.Task{
-			DriveId:   body.DriveId,
+			DriveId:   folder.Id,
 			DriveName: folder.Name,
 			LocalPath: path,
 		}
