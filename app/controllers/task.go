@@ -68,10 +68,6 @@ func CreateTask() http.HandlerFunc {
 		body := TaskPostBody{}
 		req.BindBody(&body)
 
-		res.SendJSON(yin.H{
-			"result": "",
-		})
-
 		folder, err := gdrive.Folder(body.DriveId)
 
 		if err != nil {

@@ -7,8 +7,9 @@ import (
 const FOLDER_MIMETYPE = "application/vnd.google-apps.folder"
 
 type DriveFolder struct {
-	Id   string
-	Name string
+	Id    string
+	Name  string
+	Files []DriveFile
 }
 
 func Folder(id string) (*DriveFolder, error) {
@@ -26,8 +27,11 @@ func Folder(id string) (*DriveFolder, error) {
 		return nil, fmt.Errorf("resource with id '%s' is not a folder", file.Id)
 	}
 
+	files, err := getFiles(file.Id)
+
 	return &DriveFolder{
-		Id:   file.Id,
-		Name: file.Name,
+		Id:    file.Id,
+		Name:  file.Name,
+		Files: files,
 	}, err
 }
