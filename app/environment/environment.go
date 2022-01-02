@@ -8,7 +8,7 @@ import (
 const (
 	config     = "config"
 	downloads  = "downloads"
-	dbFileName = "gogdl-ng.db"
+	dbFileName = "gogdl-ng.json"
 )
 
 func GetDatabaseFilePath() (string, error) {

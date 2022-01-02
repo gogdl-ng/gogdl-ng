@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/LegendaryB/gogdl-ng/app/environment"
 	"github.com/LegendaryB/gogdl-ng/app/gdrive"
 	"github.com/LegendaryB/gogdl-ng/app/models/task"
+	"github.com/LegendaryB/gogdl-ng/app/persistence"
 	"github.com/gorilla/mux"
 	"github.com/qkgo/yin"
 )
@@ -15,10 +15,10 @@ type TaskPostBody struct {
 	DriveId string `json:"driveId"`
 }
 
-func GetAllTasks() http.HandlerFunc {
+func GetTasks() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		res, _ := yin.Event(w, r)
-		tasks, err := task.Repository.GetAll()
+		tasks, err := persistence.Tasks.All()
 
 		if err != nil {
 			res.SendStatus(http.StatusInternalServerError)
@@ -39,22 +39,17 @@ func GetTask() http.HandlerFunc {
 		res, _ := yin.Event(w, r)
 		param := mux.Vars(r)["id"]
 
-		id, err := strconv.ParseInt(param, 10, 64)
+		id, err := strconv.Atoi(param)
 
 		if err != nil || id <= 0 {
 			res.SendStatus(http.StatusBadRequest)
 			return
 		}
 
-		t, err := task.Repository.Get(id)
+		t := &task.Task{}
 
-		if err != nil {
+		if err = persistence.Tasks.Get(id, t); err != nil {
 			res.SendStatus(http.StatusInternalServerError)
-			return
-		}
-
-		if t.Id <= 0 {
-			res.SendStatus(http.StatusNotFound)
 			return
 		}
 
@@ -68,34 +63,27 @@ func CreateTask() http.HandlerFunc {
 		body := TaskPostBody{}
 		req.BindBody(&body)
 
-		folder, err := gdrive.Folder(body.DriveId)
+		folder, err := gdrive.GetFilesByFolderId(body.DriveId)
 
 		if err != nil {
 			res.SendStatus(http.StatusNotFound)
 			return
 		}
 
-		path, err := environment.CreateTaskDirectory(folder.Name)
+		task := &task.Task{
+			Name:   folder.Name,
+			Status: task.New,
+			Files:  folder.Files,
+		}
+
+		_, err = persistence.Tasks.Add(task)
 
 		if err != nil {
 			res.SendStatus(http.StatusInternalServerError)
 			return
 		}
 
-		insert := task.Task{
-			DriveId:   folder.Id,
-			DriveName: folder.Name,
-			LocalPath: path,
-		}
-
-		t, err := task.Repository.Create(insert)
-
-		if err != nil {
-			res.SendStatus(http.StatusInternalServerError)
-			return
-		}
-
-		res.SendJSON(t)
+		res.SendJSON(task)
 	}
 }
 
@@ -104,7 +92,7 @@ func DeleteTask() http.HandlerFunc {
 		res, _ := yin.Event(w, r)
 		param := mux.Vars(r)["id"]
 
-		id, err := strconv.ParseInt(param, 10, 64)
+		id, err := strconv.Atoi(param)
 
 		if err != nil || id <= 0 {
 			res.SendStatus(http.StatusBadRequest)
@@ -116,7 +104,7 @@ func DeleteTask() http.HandlerFunc {
 			return
 		}
 
-		err = task.Repository.Delete(id)
+		err = persistence.Tasks.Delete(id)
 
 		if err != nil {
 			res.SendStatus(http.StatusInternalServerError)

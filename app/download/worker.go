@@ -19,7 +19,7 @@ func Start(errch chan error) {
 		}
 
 		for _, task := range tasks {
-			fmt.Println(task.DriveId)
+			fmt.Println(task.Status)
 		}
 
 	}
@@ -29,17 +29,6 @@ func Start(errch chan error) {
 
 func getUnfinishedTasks() ([]task.Task, error) {
 	var unfinishedTasks []task.Task
-	tasks, err := task.Repository.GetAll()
-
-	if err != nil {
-		return unfinishedTasks, err
-	}
-
-	for _, v := range tasks {
-		if !v.IsCompleted {
-			unfinishedTasks = append(unfinishedTasks, v)
-		}
-	}
 
 	return unfinishedTasks, nil
 }

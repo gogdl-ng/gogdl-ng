@@ -1,9 +1,9 @@
 package task
 
+import "github.com/LegendaryB/gogdl-ng/app/gdrive"
+
 type Task struct {
-	Id          int64  `json:"id"`
-	DriveId     string `json:"driveId"`
-	DriveName   string `json:"driveName"`
-	LocalPath   string `json:"localPath"`
-	IsCompleted bool   `json:"isCompleted"`
+	Name   string
+	Status TaskStatus
+	Files  []*gdrive.DriveFile
 }
