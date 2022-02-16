@@ -1,22 +1,16 @@
 package app
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
-	"github.com/LegendaryB/gogdl-ng/app/controllers"
 	"github.com/LegendaryB/gogdl-ng/app/download"
 	"github.com/LegendaryB/gogdl-ng/app/gdrive"
-	"github.com/LegendaryB/gogdl-ng/app/middlewares"
-	"github.com/LegendaryB/gogdl-ng/app/persistence"
 	"github.com/gorilla/mux"
 )
 
 func Run() {
-	if err := persistence.NewDbContext(); err != nil {
-		log.Fatalf("failed to initialize db context: %v", err)
-	}
-
 	if err := gdrive.New(); err != nil {
 		log.Fatalf("failed to initialize Google Drive service: %v", err)
 	}
@@ -24,10 +18,31 @@ func Run() {
 	router := mux.NewRouter().StrictSlash(true)
 	router = router.PathPrefix("/api/v1").Subrouter()
 
-	router.Use(middlewares.JSONMiddleware)
-	controllers.AddRoutes(router)
+	router.HandleFunc("/jobs", CreateDownloadJob()).Methods("POST")
 
 	go download.Run()
 
 	log.Fatal(http.ListenAndServe(":3200", router))
+}
+
+func CreateDownloadJob() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var job download.Job
+
+		if err := json.NewDecoder(r.Body).Decode(&job); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		folder, err := gdrive.GetFolderById(job.DriveId)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err = download.RegisterNewJob(folder); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
 }

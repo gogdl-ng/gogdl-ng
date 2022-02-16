@@ -16,7 +16,7 @@ type DriveFolder struct {
 }
 
 func GetFilesByFolderId(folderId string) (*DriveFolder, error) {
-	folder, err := getFolderById(folderId)
+	folder, err := GetFolderById(folderId)
 
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func getFilesByPath(folderId string, path string) ([]*DriveFile, error) {
 	return files, nil
 }
 
-func getFolderById(folderId string) (*DriveFolder, error) {
+func GetFolderById(folderId string) (*DriveFolder, error) {
 	serviceGetCall := service.Files.Get(folderId).
 		SupportsAllDrives(true).
 		SupportsTeamDrives(true)
