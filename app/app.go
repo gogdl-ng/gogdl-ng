@@ -18,7 +18,7 @@ func Run() {
 	}
 
 	if err := gdrive.New(); err != nil {
-		log.Fatalf("failed to instantiate google drive service: %v", err)
+		log.Fatalf("failed to initialize Google Drive service: %v", err)
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
@@ -27,18 +27,7 @@ func Run() {
 	router.Use(middlewares.JSONMiddleware)
 	controllers.AddRoutes(router)
 
-	go executeDownloadRoutine()
+	go download.Run()
 
 	log.Fatal(http.ListenAndServe(":3200", router))
-}
-
-func executeDownloadRoutine() {
-	// todo: handle errors: skip?
-	errch := make(chan error)
-	go download.Start(errch)
-	err := <-errch
-
-	if err != nil {
-		log.Fatalf("%v", err)
-	}
 }

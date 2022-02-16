@@ -19,7 +19,7 @@ func (ts *TaskStatus) UnmarshalJSON(b []byte) error {
 	var r *TS = (*TS)(ts)
 	err := json.Unmarshal(b, &r)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	switch *ts {

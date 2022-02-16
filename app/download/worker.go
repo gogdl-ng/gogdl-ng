@@ -7,24 +7,22 @@ import (
 	"github.com/LegendaryB/gogdl-ng/app/models/task"
 )
 
-func Start(errch chan error) {
+func Run() {
 	ticker := time.NewTicker(5 * time.Second)
 
 	for range ticker.C {
 		tasks, err := getUnfinishedTasks()
 
 		if err != nil {
-			errch <- err
+			// todo: log
+			//( errch <- err
 			break
 		}
 
 		for _, task := range tasks {
 			fmt.Println(task.Status)
 		}
-
 	}
-
-	errch <- nil
 }
 
 func getUnfinishedTasks() ([]task.Task, error) {
