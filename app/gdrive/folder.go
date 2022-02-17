@@ -3,45 +3,28 @@ package gdrive
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
+
+	"google.golang.org/api/drive/v3"
 )
 
 const serviceQuery = "nextPageToken, files(id, name, md5Checksum, mimeType, trashed)"
-const serviceMaxPageSize = 100
+const folderMimeType = "application/vnd.google-apps.folder"
+const maxPageSize = 100
 
 type DriveFolder struct {
-	Id    string
-	Name  string
-	Files []*DriveFile
+	Id   string
+	Name string
 }
 
-func GetFilesByFolderId(folderId string) (*DriveFolder, error) {
-	folder, err := GetFolderById(folderId)
-
-	if err != nil {
-		return nil, err
-	}
-
-	files, err := getFilesByPath(folderId, "")
-
-	if err != nil {
-		return nil, err
-	}
-
-	folder.Files = files
-
-	return folder, nil
-}
-
-func getFilesByPath(folderId string, path string) ([]*DriveFile, error) {
-	var files []*DriveFile
+func GetFilesFromFolder(folderId string) ([]*drive.File, error) {
+	var children []*drive.File
 	var nextPageToken string
 
 	for {
-		query := fmt.Sprintf("'%s' in parents and trashed=false", folderId)
+		query := fmt.Sprintf("'%s' in parents and mimeType != '%s' and trashed=false", folderId, folderMimeType)
 
 		serviceListCall := service.Files.List().
-			PageSize(serviceMaxPageSize).
+			PageSize(maxPageSize).
 			OrderBy("name").
 			SupportsAllDrives(true).
 			SupportsTeamDrives(true).
@@ -60,25 +43,7 @@ func getFilesByPath(folderId string, path string) ([]*DriveFile, error) {
 			return nil, errors.New("failed to execute service list call")
 		}
 
-		for _, file := range list.Files {
-			if file.MimeType == Folder {
-				childFolderFiles, err := getFilesByPath(file.Id, filepath.Join(path, file.Name))
-
-				if err != nil {
-					return nil, fmt.Errorf("failed to retrieve child folder (id: %s) files", file.Id)
-				}
-
-				files = append(files, childFolderFiles...)
-				continue
-			}
-
-			files = append(files, &DriveFile{
-				Id:       file.Id,
-				Name:     file.Name,
-				Path:     filepath.Join(path, file.Name),
-				Checksum: file.Md5Checksum,
-			})
-		}
+		children = append(children, list.Files...)
 
 		nextPageToken = list.NextPageToken
 
@@ -87,7 +52,7 @@ func getFilesByPath(folderId string, path string) ([]*DriveFile, error) {
 		}
 	}
 
-	return files, nil
+	return children, nil
 }
 
 func GetFolderById(folderId string) (*DriveFolder, error) {
@@ -101,7 +66,7 @@ func GetFolderById(folderId string) (*DriveFolder, error) {
 		return nil, err
 	}
 
-	if file.MimeType != Folder {
+	if file.MimeType != folderMimeType {
 		return nil, fmt.Errorf("resource with id '%s' is not a folder", file.Id)
 	}
 

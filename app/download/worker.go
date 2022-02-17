@@ -1,22 +1,24 @@
 package download
 
 import (
+	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"log"
 	"time"
 
 	"github.com/LegendaryB/gogdl-ng/app/env"
+	"github.com/LegendaryB/gogdl-ng/app/gdrive"
 )
 
-var downloadFolder, _ = env.GetDownloadFolder()
+var baseFolder, _ = env.GetDownloadFolder()
 
 func Run() error {
 	ticker := time.NewTicker(5 * time.Second)
 	var finishedJobs []fs.FileInfo
 
 	for range ticker.C {
-		folders, err := getSubfolders(downloadFolder)
+		folders, err := getSubfolders(baseFolder)
 
 		if err != nil {
 			log.Fatal(err)
@@ -30,11 +32,21 @@ func Run() error {
 			state, err := readJobState(folder.Name())
 
 			if err != nil {
-				return err
+				log.Printf("%s does not contain a state file.", folder.Name())
 			}
 
+			fmt.Print(state)
+
 			if !state.Finished {
-				// download
+				driveFiles, err := gdrive.GetFilesFromFolder(state.DriveId)
+
+				if err != nil {
+					return err
+				}
+
+				for _, driveFile := range driveFiles {
+					fmt.Print(driveFile.Name)
+				}
 
 				state.Finished = true
 

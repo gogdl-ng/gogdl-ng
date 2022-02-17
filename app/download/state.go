@@ -12,7 +12,7 @@ type JobState struct {
 	DriveId  string
 }
 
-const state_file_name = "state.json"
+const stateFileName = "state.json"
 
 func createStateFile(path string, driveId string) error {
 	state := JobState{
@@ -29,7 +29,7 @@ func writeJobState(folderName string, state *JobState) error {
 		return err
 	}
 
-	path := filepath.Join(downloadFolder, folderName, state_file_name)
+	path := filepath.Join(baseFolder, folderName, stateFileName)
 
 	if err = ioutil.WriteFile(path, json, 0755); err != nil {
 		return err
@@ -39,7 +39,8 @@ func writeJobState(folderName string, state *JobState) error {
 }
 
 func readJobState(folderName string) (*JobState, error) {
-	file, err := os.Open(filepath.Join(downloadFolder, folderName, state_file_name))
+	path := filepath.Join(baseFolder, folderName, stateFileName)
+	file, err := os.Open(path)
 
 	if err != nil {
 		return nil, err
