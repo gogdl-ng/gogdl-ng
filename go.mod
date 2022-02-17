@@ -3,15 +3,10 @@ module github.com/LegendaryB/gogdl-ng
 go 1.16
 
 require (
-	github.com/LegendaryB/gostore v0.0.0-20220101225417-30a308615cc4
+	github.com/avast/retry-go v3.0.0+incompatible // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/gorilla/mux v1.8.0
-	github.com/mattn/go-isatty v0.0.14 // indirect
-	github.com/newrelic/go-agent v3.15.1+incompatible // indirect
-	github.com/qkgo/yin v0.0.0-20190403073632-bff3b50ba6e6
-	go.uber.org/atomic v1.9.0 // indirect
-	go.uber.org/multierr v1.7.0 // indirect
-	go.uber.org/zap v1.19.1 // indirect
+	github.com/sirupsen/logrus v1.8.1 // indirect
 	golang.org/x/net v0.0.0-20211201190559-0a0e4e1bb54c // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	golang.org/x/sys v0.0.0-20211124211545-fe61309f8881 // indirect

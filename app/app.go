@@ -4,30 +4,36 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/LegendaryB/gogdl-ng/app/controllers"
+	"github.com/LegendaryB/gogdl-ng/app/api/v1"
 	"github.com/LegendaryB/gogdl-ng/app/download"
 	"github.com/LegendaryB/gogdl-ng/app/gdrive"
-	"github.com/LegendaryB/gogdl-ng/app/middlewares"
-	"github.com/LegendaryB/gogdl-ng/app/persistence"
+	"github.com/LegendaryB/gogdl-ng/app/logging"
 	"github.com/gorilla/mux"
 )
 
 func Run() {
-	if err := persistence.NewDbContext(); err != nil {
-		log.Fatalf("failed to initialize db context: %v", err)
-	}
+	logger := logging.NewLogger()
 
 	if err := gdrive.New(); err != nil {
-		log.Fatalf("failed to initialize Google Drive service: %v", err)
+		logger.Fatalf("failed to initialize Google Drive service: %w", err)
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
 	router = router.PathPrefix("/api/v1").Subrouter()
 
-	router.Use(middlewares.JSONMiddleware)
-	controllers.AddRoutes(router)
+	registerRoutes(router)
 
-	go download.Run()
+	go listenAndServe(router)
 
+	if err := download.Run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func registerRoutes(router *mux.Router) {
+	router.HandleFunc("/jobs", api.CreateDownloadJob()).Methods("POST")
+}
+
+func listenAndServe(router *mux.Router) {
 	log.Fatal(http.ListenAndServe(":3200", router))
 }

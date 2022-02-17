@@ -8,8 +8,12 @@
 
 ## 🎯 Features
 * Google Drive v3 API based
+* With additional Firefox and Chrome extension
 * OAuth 2.0 authorization
-* Hassle-free setup thanks to Docker + SQLite 3 ❤︎
+* Integrity checks (MD5 checksum)
+* Transfer retries
+* Robust logging
+* Hassle-free setup thanks to Docker ❤︎
 
 ## 🔨 Contributors
 
