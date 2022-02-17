@@ -12,23 +12,25 @@ type Job struct {
 }
 
 func RegisterNewJob(driveFolder *gdrive.DriveFolder) error {
-	if err := createJobFolder(driveFolder.Name); err != nil {
+	path, err := createJobFolder(driveFolder.Name)
+
+	if err != nil {
 		return err
 	}
 
-	if err := createStateFile(driveFolder.Name, driveFolder.Id); err != nil {
+	if err := createDriveIdFile(path, driveFolder.Id); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func createJobFolder(folderName string) error {
-	path := filepath.Join(baseFolder, folderName)
+func createJobFolder(folderName string) (string, error) {
+	path := filepath.Join(incompleteFolder, folderName)
 
 	if err := os.MkdirAll(path, 0755); err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return path, nil
 }

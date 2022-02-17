@@ -5,68 +5,69 @@ import (
 	"io/fs"
 	"io/ioutil"
 	"log"
+	"path/filepath"
+	"reflect"
 	"time"
 
 	"github.com/LegendaryB/gogdl-ng/app/env"
 	"github.com/LegendaryB/gogdl-ng/app/gdrive"
 )
 
-var baseFolder, _ = env.GetDownloadFolder()
+var completedFolder, _ = env.GetCompletedFolder()
+var incompleteFolder, _ = env.GetIncompleteFolder()
 
 func Run() error {
 	ticker := time.NewTicker(5 * time.Second)
-	var finishedJobs []fs.FileInfo
 
 	for range ticker.C {
-		folders, err := getSubfolders(baseFolder)
+		folders, err := getSubfolders(incompleteFolder)
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		for _, folder := range folders {
-			if contains(finishedJobs, folder) {
-				continue
-			}
-
-			state, err := readJobState(folder.Name())
+			folderPath := filepath.Join(getFullPath(folder), folder.Name())
+			driveId, err := readDriveIdFile(folderPath)
 
 			if err != nil {
-				log.Printf("%s does not contain a state file.", folder.Name())
+				log.Print("error")
 			}
 
-			fmt.Print(state)
+			driveFiles, err := gdrive.GetFilesFromFolder(driveId)
 
-			if !state.Finished {
-				driveFiles, err := gdrive.GetFilesFromFolder(state.DriveId)
-
-				if err != nil {
-					return err
-				}
-
-				for _, driveFile := range driveFiles {
-					fmt.Print(driveFile.Name)
-				}
-
-				state.Finished = true
-
-				if err = writeJobState(folder.Name(), state); err != nil {
-					finishedJobs = append(finishedJobs, folder)
-				}
+			if err != nil {
+				log.Print("failed bla bla")
 			}
+
+			for _, driveFile := range driveFiles {
+				fmt.Print(driveFile.Name)
+			}
+
+			/*
+				if !state.Finished {
+					driveFiles, err := gdrive.GetFilesFromFolder(state.DriveId)
+
+					if err != nil {
+						return err
+					}
+
+					for _, driveFile := range driveFiles {
+						fmt.Print(driveFile.Name)
+					}
+
+					state.Finished = true
+				} */
 		}
 	}
 
 	return nil
 }
 
-func contains(fia []fs.FileInfo, fis fs.FileInfo) bool {
-	for _, fi := range fia {
-		if fi.Name() == fis.Name() {
-			return true
-		}
-	}
-	return false
+func getFullPath(fi fs.FileInfo) string {
+	fv := reflect.ValueOf(fi).Elem().FieldByName("path")
+
+	return fv.String()
 }
 
 func getSubfolders(path string) ([]fs.FileInfo, error) {

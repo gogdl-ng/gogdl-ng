@@ -6,8 +6,10 @@ import (
 )
 
 const (
-	config    = "config"
-	downloads = "downloads"
+	config     = "config"
+	downloads  = "downloads"
+	completed  = "completed"
+	incomplete = "incomplete"
 )
 
 func GetConfigurationFolder() (string, error) {
@@ -22,14 +24,26 @@ func GetConfigurationFolder() (string, error) {
 	return dir, nil
 }
 
+func GetIncompleteFolder() (string, error) {
+	return getDownloadsFolderPath(incomplete)
+}
+
+func GetCompletedFolder() (string, error) {
+	return getDownloadsFolderPath(completed)
+}
+
 func GetDownloadFolder() (string, error) {
+	return getDownloadsFolderPath("")
+}
+
+func getDownloadsFolderPath(lastPathSegment string) (string, error) {
 	wd, err := os.Getwd()
 
 	if err != nil {
 		return "", err
 	}
 
-	dir := filepath.Join(wd, downloads)
+	dir := filepath.Join(wd, downloads, lastPathSegment)
 
 	return dir, nil
 }
