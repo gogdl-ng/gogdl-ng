@@ -1,7 +1,6 @@
 package gdrive
 
 import (
-	"errors"
 	"fmt"
 
 	"google.golang.org/api/drive/v3"
@@ -40,7 +39,8 @@ func GetFilesFromFolder(folderId string) ([]*drive.File, error) {
 		list, err := serviceListCall.Do()
 
 		if err != nil {
-			return nil, errors.New("failed to execute service list call")
+			logger.Errorf("failed to execute drive service call. %w", err)
+			return nil, err
 		}
 
 		children = append(children, list.Files...)
@@ -63,11 +63,15 @@ func GetFolderById(folderId string) (*DriveFolder, error) {
 	file, err := serviceGetCall.Do()
 
 	if err != nil {
+		logger.Errorf("failed to execute drive service call. %w", err)
 		return nil, err
 	}
 
 	if file.MimeType != folderMimeType {
-		return nil, fmt.Errorf("resource with id '%s' is not a folder", file.Id)
+		err = fmt.Errorf("resource with id '%s' is not a folder", file.Id)
+		logger.Error(err)
+
+		return nil, err
 	}
 
 	return &DriveFolder{

@@ -7,13 +7,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/LegendaryB/gogdl-ng/app/logging"
 	"github.com/LegendaryB/gogdl-ng/app/utils"
 	"github.com/avast/retry-go"
 	"google.golang.org/api/drive/v3"
 )
-
-var logger = logging.NewLogger()
 
 func DownloadFile(folderPath string, driveFile *drive.File) error {
 	return retry.Do(func() error {
