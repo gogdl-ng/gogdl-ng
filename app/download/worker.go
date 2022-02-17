@@ -1,7 +1,6 @@
 package download
 
 import (
-	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"log"
@@ -31,33 +30,18 @@ func Run() error {
 			driveId, err := readDriveIdFile(folderPath)
 
 			if err != nil {
-				log.Print("error")
+				log.Print("failed to read drive-id file")
 			}
 
 			driveFiles, err := gdrive.GetFilesFromFolder(driveId)
 
 			if err != nil {
-				log.Print("failed bla bla")
+				log.Print("failed to retrieve files from google drive")
 			}
 
 			for _, driveFile := range driveFiles {
-				fmt.Print(driveFile.Name)
+				gdrive.DownloadFile(folderPath, driveFile)
 			}
-
-			/*
-				if !state.Finished {
-					driveFiles, err := gdrive.GetFilesFromFolder(state.DriveId)
-
-					if err != nil {
-						return err
-					}
-
-					for _, driveFile := range driveFiles {
-						fmt.Print(driveFile.Name)
-					}
-
-					state.Finished = true
-				} */
 		}
 	}
 

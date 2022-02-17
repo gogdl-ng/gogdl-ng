@@ -7,7 +7,7 @@ import (
 	"google.golang.org/api/drive/v3"
 )
 
-const serviceQuery = "nextPageToken, files(id, name, md5Checksum, mimeType, trashed)"
+const serviceQuery = "nextPageToken, files(id, name, size, md5Checksum, mimeType, trashed)"
 const folderMimeType = "application/vnd.google-apps.folder"
 const maxPageSize = 100
 
