@@ -1,6 +1,7 @@
 package gdrive
 
 import (
+	"crypto/md5"
 	"errors"
 	"fmt"
 	"io"
@@ -37,9 +38,8 @@ func DownloadFile(folderPath string, driveFile *drive.File) error {
 		return err
 	}
 
-	// finished, skip
 	if fi.Size() == driveFile.Size {
-		logger.Infof("")
+		logger.Infof("file is already finished. skipping..")
 		return nil
 	}
 
@@ -59,8 +59,39 @@ func DownloadFile(folderPath string, driveFile *drive.File) error {
 		return err
 	}
 
+	md5checksum, err := getMd5Checksum(fp)
+
+	if err != nil {
+		logger.Errorf("")
+		return err
+	}
+
+	if md5checksum != driveFile.Md5Checksum {
+		err = errors.New("md5 checksum mismatch")
+		logger.Errorf("the md5 checksum of the local file does not match checksum of the remote file. %w", err)
+		return err
+	}
+
 	logger.Info("finished file download")
 	return nil
+}
+
+func getMd5Checksum(path string) (string, error) {
+	file, err := os.Open(path)
+
+	if err != nil {
+		logger.Errorf("failed to open file. %w", err)
+		return "", err
+	}
+
+	hash := md5.New()
+
+	if _, err = io.Copy(hash, file); err != nil {
+		logger.Errorf("failed to write buffer. %w", err)
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", hash.Sum(nil)), nil
 }
 
 func getLocalFile(path string, maxSize int64) (*os.File, error) {
@@ -70,6 +101,7 @@ func getLocalFile(path string, maxSize int64) (*os.File, error) {
 		f, err := os.Create(path)
 
 		if err != nil {
+			logger.Errorf("failed to create file. %w", err)
 			return nil, err
 		}
 
@@ -77,12 +109,14 @@ func getLocalFile(path string, maxSize int64) (*os.File, error) {
 	}
 
 	if fi.Size() > maxSize {
+		logger.Warnf("local file size is greater than remote. file is probably corrupt. removing it..")
 		os.Remove(path)
 	}
 
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0755)
 
 	if err != nil {
+		logger.Errorf("failed to open file. %w", err)
 		return nil, err
 	}
 
