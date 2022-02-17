@@ -2,7 +2,6 @@ package download
 
 import (
 	"io/fs"
-	"io/ioutil"
 	"log"
 	"path/filepath"
 	"reflect"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/LegendaryB/gogdl-ng/app/env"
 	"github.com/LegendaryB/gogdl-ng/app/gdrive"
+	"github.com/LegendaryB/gogdl-ng/app/utils"
 )
 
 var completedFolder, _ = env.GetCompletedFolder()
@@ -19,7 +19,7 @@ func Run() error {
 	ticker := time.NewTicker(5 * time.Second)
 
 	for range ticker.C {
-		folders, err := getSubfolders(incompleteFolder)
+		folders, err := utils.Subfolders(incompleteFolder)
 
 		if err != nil {
 			log.Fatal(err)
@@ -40,7 +40,20 @@ func Run() error {
 			}
 
 			for _, driveFile := range driveFiles {
-				gdrive.DownloadFile(folderPath, driveFile)
+				if err = gdrive.DownloadFile(folderPath, driveFile); err != nil {
+					log.Print("asdas")
+				}
+
+				if err := deleteDriveIdFile(folderPath); err != nil {
+					log.Print("asdas")
+				}
+
+				err = utils.Move(folderPath, filepath.Join(completedFolder, folder.Name()))
+
+				if err != nil {
+					e := err.Error()
+					log.Print(e)
+				}
 			}
 		}
 	}
@@ -52,24 +65,4 @@ func getFullPath(fi fs.FileInfo) string {
 	fv := reflect.ValueOf(fi).Elem().FieldByName("path")
 
 	return fv.String()
-}
-
-func getSubfolders(path string) ([]fs.FileInfo, error) {
-	items, err := ioutil.ReadDir(path)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var subfolders []fs.FileInfo
-
-	for _, item := range items {
-		if !item.IsDir() {
-			continue
-		}
-
-		subfolders = append(subfolders, item)
-	}
-
-	return subfolders, nil
 }

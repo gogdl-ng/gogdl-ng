@@ -1,7 +1,6 @@
 package gdrive
 
 import (
-	"crypto/md5"
 	"errors"
 	"fmt"
 	"io"
@@ -9,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/LegendaryB/gogdl-ng/app/logging"
+	"github.com/LegendaryB/gogdl-ng/app/utils"
 	"google.golang.org/api/drive/v3"
 )
 
@@ -59,10 +59,10 @@ func DownloadFile(folderPath string, driveFile *drive.File) error {
 		return err
 	}
 
-	md5checksum, err := getMd5Checksum(fp)
+	md5checksum, err := utils.GetMd5Checksum(fp)
 
 	if err != nil {
-		logger.Errorf("")
+		logger.Errorf("failed to calculate md5 checksum. %w", err)
 		return err
 	}
 
@@ -74,24 +74,6 @@ func DownloadFile(folderPath string, driveFile *drive.File) error {
 
 	logger.Info("finished file download")
 	return nil
-}
-
-func getMd5Checksum(path string) (string, error) {
-	file, err := os.Open(path)
-
-	if err != nil {
-		logger.Errorf("failed to open file. %w", err)
-		return "", err
-	}
-
-	hash := md5.New()
-
-	if _, err = io.Copy(hash, file); err != nil {
-		logger.Errorf("failed to write buffer. %w", err)
-		return "", err
-	}
-
-	return fmt.Sprintf("%x", hash.Sum(nil)), nil
 }
 
 func getLocalFile(path string, maxSize int64) (*os.File, error) {
