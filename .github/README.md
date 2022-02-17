@@ -8,7 +8,7 @@
 
 ## 🎯 Features
 * Google Drive v3 API based
-* Firefox and Chrome web extension for easier workflow
+* With additional Firefox and Chrome extension
 * OAuth 2.0 authorization
 * Integrity checks (MD5 checksum)
 * Transfer retries

@@ -41,7 +41,7 @@ func DownloadFile(folderPath string, driveFile *drive.File) error {
 		}
 
 		if fi.Size() == driveFile.Size {
-			logger.Infof("file is already finished. skipping..")
+			logger.Infof("file is already finished. skipping.")
 			return nil
 		}
 

@@ -16,12 +16,14 @@ var logger = logging.NewLogger()
 
 func Move(source string, target string) error {
 	if err := os.MkdirAll(target, 0755); err != nil {
+		logger.Errorf("failed to create folder(s). %w", err)
 		return err
 	}
 
 	items, err := ioutil.ReadDir(source)
 
 	if err != nil {
+		logger.Errorf("failed to read folder content. %w", err)
 		return err
 	}
 
@@ -30,11 +32,13 @@ func Move(source string, target string) error {
 		targetfp := filepath.Join(target, item.Name())
 
 		if err := os.Rename(sourcefp, targetfp); err != nil {
+			logger.Errorf("failed to move file. %w", err)
 			return err
 		}
 	}
 
 	if err = os.Remove(source); err != nil {
+		logger.Errorf("failed to delete folder. %w", err)
 		return err
 	}
 
@@ -63,6 +67,7 @@ func Subfolders(path string) ([]fs.FileInfo, error) {
 	items, err := ioutil.ReadDir(path)
 
 	if err != nil {
+		logger.Errorf("failed to read folder content. %w", err)
 		return nil, err
 	}
 
@@ -70,6 +75,7 @@ func Subfolders(path string) ([]fs.FileInfo, error) {
 
 	for _, item := range items {
 		if !item.IsDir() {
+			logger.Infof("%s is no folder, skipping.", item.Name())
 			continue
 		}
 

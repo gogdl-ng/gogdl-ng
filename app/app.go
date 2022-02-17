@@ -15,7 +15,7 @@ func Run() {
 	logger := logging.NewLogger()
 
 	if err := gdrive.New(); err != nil {
-		logger.Fatalf("failed to initialize Google Drive service: %v", err)
+		logger.Fatalf("failed to initialize Google Drive service: %w", err)
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
@@ -25,7 +25,9 @@ func Run() {
 
 	go listenAndServe(router)
 
-	download.Run()
+	if err := download.Run(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func registerRoutes(router *mux.Router) {
