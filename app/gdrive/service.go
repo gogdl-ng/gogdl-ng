@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/LegendaryB/gogdl-ng/app/environment"
+	"github.com/LegendaryB/gogdl-ng/app/env"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/drive/v3"
@@ -24,7 +24,7 @@ const (
 var service *drive.Service
 
 func New() error {
-	configurationDirectory, err := environment.GetConfigurationFolder()
+	configurationDirectory, err := env.GetConfigurationFolder()
 
 	if err != nil {
 		return err

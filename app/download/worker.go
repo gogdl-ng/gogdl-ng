@@ -6,10 +6,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/LegendaryB/gogdl-ng/app/environment"
+	"github.com/LegendaryB/gogdl-ng/app/env"
 )
 
-var downloadFolder, _ = environment.GetDownloadFolder()
+var downloadFolder, _ = env.GetDownloadFolder()
 
 func Run() error {
 	ticker := time.NewTicker(5 * time.Second)
