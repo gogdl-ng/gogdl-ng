@@ -20,8 +20,12 @@ func Run() {
 
 	router.HandleFunc("/jobs", CreateDownloadJob()).Methods("POST")
 
-	go download.Run()
+	go listenAndServe(router)
 
+	download.Run()
+}
+
+func listenAndServe(router *mux.Router) {
 	log.Fatal(http.ListenAndServe(":3200", router))
 }
 

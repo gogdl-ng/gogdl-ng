@@ -24,7 +24,7 @@ const (
 var service *drive.Service
 
 func New() error {
-	configurationDirectory, err := environment.GetConfigurationDirectory()
+	configurationDirectory, err := environment.GetConfigurationFolder()
 
 	if err != nil {
 		return err

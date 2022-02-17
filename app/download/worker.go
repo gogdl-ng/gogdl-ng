@@ -2,7 +2,10 @@ package download
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/fs"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -13,12 +16,71 @@ import (
 
 const state_file_name = "state.json"
 
-func Run() {
+var downloadFolder, _ = environment.GetDownloadFolder()
+
+func Run() error {
 	ticker := time.NewTicker(5 * time.Second)
 
 	for range ticker.C {
+		folders, err := getSubfolders(downloadFolder)
 
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, folder := range folders {
+			state, err := readJobState(folder.Name())
+
+			if err != nil {
+				return err
+			}
+
+			fmt.Print(state.Finished)
+		}
 	}
+
+	return nil
+}
+
+func readJobState(folderName string) (*JobState, error) {
+	file, err := os.Open(filepath.Join(downloadFolder, folderName, state_file_name))
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer file.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	var state JobState
+	if err = json.NewDecoder(file).Decode(&state); err != nil {
+		return nil, err
+	}
+
+	return &state, nil
+}
+
+func getSubfolders(path string) ([]fs.FileInfo, error) {
+	items, err := ioutil.ReadDir(path)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var subfolders []fs.FileInfo
+
+	for _, item := range items {
+		if !item.IsDir() {
+			continue
+		}
+
+		subfolders = append(subfolders, item)
+	}
+
+	return subfolders, nil
 }
 
 func RegisterNewJob(driveFolder *gdrive.DriveFolder) error {
@@ -36,23 +98,13 @@ func RegisterNewJob(driveFolder *gdrive.DriveFolder) error {
 }
 
 func createJobFolder(name string) (string, error) {
-	folder, err := environment.GetDownloadDirectory()
+	folderPath := filepath.Join(downloadFolder, name)
 
-	if err != nil {
-		return "", err
-	}
-
-	folderPath := filepath.Join(folder, name)
-
-	if err = os.MkdirAll(folderPath, 0755); err != nil {
+	if err := os.MkdirAll(folderPath, 0755); err != nil {
 		return "", err
 	}
 
 	return folderPath, nil
-}
-
-func createStateFilePath(path string) string {
-	return filepath.Join(path, state_file_name)
 }
 
 func createStateFile(path string, driveId string) error {
@@ -66,7 +118,7 @@ func createStateFile(path string, driveId string) error {
 		return err
 	}
 
-	if err = ioutil.WriteFile(createStateFilePath(path), json, 0755); err != nil {
+	if err = ioutil.WriteFile(filepath.Join(path, state_file_name), json, 0755); err != nil {
 		return err
 	}
 

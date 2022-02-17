@@ -10,7 +10,7 @@ const (
 	downloads = "downloads"
 )
 
-func GetConfigurationDirectory() (string, error) {
+func GetConfigurationFolder() (string, error) {
 	wd, err := os.Getwd()
 
 	if err != nil {
@@ -22,7 +22,7 @@ func GetConfigurationDirectory() (string, error) {
 	return dir, nil
 }
 
-func GetDownloadDirectory() (string, error) {
+func GetDownloadFolder() (string, error) {
 	wd, err := os.Getwd()
 
 	if err != nil {
