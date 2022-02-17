@@ -1,18 +1,23 @@
+FROM golang:1.16-alpine as build
+
+# gcc build base 
+RUN apk add build-base && \ 
+    mkdir -p /build
+
+#build
+COPY . /build
+WORKDIR /build
+RUN go build -o gogdl-ng .
+
 FROM golang:1.16-alpine
 VOLUME config downloads
 
-WORKDIR /app
+# Create app folder and move binary
+WORKDIR /
+RUN mkdir -p /app
 
-# Download necessary Go modules
-COPY go.mod ./
-COPY go.sum ./
-RUN go mod download
-
-# Copy source files
-COPY *.go ./
-
-# Build
-RUN go build -o /gogdl-ng
+COPY --from=build /build/gogdl-ng ./app/
 
 EXPOSE 3200
-ENTRYPOINT ["/gogdl-ng"]
+
+CMD ["/app/gogdl-ng"]

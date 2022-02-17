@@ -39,3 +39,6 @@
 !.vscode/*.code-snippets
 
 *.db
+config
+downloads
+*.log
