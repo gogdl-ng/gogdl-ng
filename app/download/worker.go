@@ -1,7 +1,6 @@
 package download
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -13,8 +12,6 @@ import (
 	"github.com/LegendaryB/gogdl-ng/app/environment"
 	"github.com/LegendaryB/gogdl-ng/app/gdrive"
 )
-
-const state_file_name = "state.json"
 
 var downloadFolder, _ = environment.GetDownloadFolder()
 
@@ -40,27 +37,6 @@ func Run() error {
 	}
 
 	return nil
-}
-
-func readJobState(folderName string) (*JobState, error) {
-	file, err := os.Open(filepath.Join(downloadFolder, folderName, state_file_name))
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer file.Close()
-
-	if err != nil {
-		return nil, err
-	}
-
-	var state JobState
-	if err = json.NewDecoder(file).Decode(&state); err != nil {
-		return nil, err
-	}
-
-	return &state, nil
 }
 
 func getSubfolders(path string) ([]fs.FileInfo, error) {
@@ -105,22 +81,4 @@ func createJobFolder(name string) (string, error) {
 	}
 
 	return folderPath, nil
-}
-
-func createStateFile(path string, driveId string) error {
-	state := JobState{
-		DriveId: driveId,
-	}
-
-	json, err := json.MarshalIndent(state, "", " ")
-
-	if err != nil {
-		return err
-	}
-
-	if err = ioutil.WriteFile(filepath.Join(path, state_file_name), json, 0755); err != nil {
-		return err
-	}
-
-	return nil
 }
