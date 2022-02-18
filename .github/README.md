@@ -14,18 +14,3 @@
 * Transfer retries
 * Robust logging
 * Hassle-free setup thanks to Docker ❤︎
-
-## 🔨 Contributors
-
-<!-- readme: contributors -start -->
-<table>
-<tr>
-    <td align="center">
-        <a href="https://github.com/LegendaryB">
-            <img src="https://avatars.githubusercontent.com/u/6391022?v=4" width="100;" alt="LegendaryB"/>
-            <br />
-            <sub><b>LegendaryB</b></sub>
-        </a>
-    </td></tr>
-</table>
-<!-- readme: contributors -end -->
