@@ -11,6 +11,3 @@ acknowledgeAbuseFlag = true
 [transfer]
 # Defines how many times a failed download should be retried.
 retryThreeshold = 5
-
-# Defines how many downloads should be allowed to run concurrently.
-maxConcurrentDownloads = 3

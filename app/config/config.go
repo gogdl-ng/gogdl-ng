@@ -17,8 +17,7 @@ type GoogleDriveConfiguration struct {
 }
 
 type TransferConfiguration struct {
-	RetryThreeshold        int
-	MaxConcurrentDownloads int
+	RetryThreeshold int
 }
 
 type Configuration struct {
