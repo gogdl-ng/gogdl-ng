@@ -3,6 +3,7 @@ module github.com/LegendaryB/gogdl-ng
 go 1.16
 
 require (
+	github.com/BurntSushi/toml v1.0.0 // indirect
 	github.com/avast/retry-go v3.0.0+incompatible // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/gorilla/mux v1.8.0

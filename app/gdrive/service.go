@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/LegendaryB/gogdl-ng/app/config"
 	"github.com/LegendaryB/gogdl-ng/app/env"
 	"github.com/LegendaryB/gogdl-ng/app/logging"
 	"golang.org/x/oauth2"
@@ -22,17 +23,13 @@ const (
 	tokenFileName       = "token.json"
 )
 
+var conf = config.Loaded
 var logger = logging.NewLogger()
 
 var service *drive.Service
 
 func New() error {
-	configurationFolder, err := env.GetConfigurationFolder()
-
-	if err != nil {
-		logger.Errorf("failed to retrieve configuration folder path. %w", err)
-		return err
-	}
+	configurationFolder := env.ConfigurationFolder
 
 	config, err := readOAuthConfigFromFile(configurationFolder)
 

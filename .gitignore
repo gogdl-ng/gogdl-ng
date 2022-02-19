@@ -39,6 +39,7 @@
 !.vscode/*.code-snippets
 
 *.db
-config
+config/credentials.json
+config/token.json
 downloads
 *.log
