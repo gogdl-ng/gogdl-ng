@@ -15,14 +15,11 @@ import (
 
 var logger = logging.NewLogger()
 
-var completedFolder, _ = env.GetCompletedFolder()
-var incompleteFolder, _ = env.GetIncompleteFolder()
-
 func Run() error {
 	ticker := time.NewTicker(5 * time.Second)
 
 	for range ticker.C {
-		folders, err := utils.Subfolders(incompleteFolder)
+		folders, err := utils.Subfolders(env.IncompleteFolder)
 
 		if err != nil {
 			logger.Errorf("failed to retrieve subfolders. %w", err)
@@ -50,7 +47,7 @@ func Run() error {
 				continue
 			}
 
-			if err = utils.Move(folderPath, filepath.Join(completedFolder, folder.Name())); err != nil {
+			if err = utils.Move(folderPath, filepath.Join(env.CompletedFolder, folder.Name())); err != nil {
 				logger.Errorf("failed to move files to target path. skipping. %w", err)
 				continue
 			}

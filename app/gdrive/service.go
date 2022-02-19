@@ -27,12 +27,7 @@ var logger = logging.NewLogger()
 var service *drive.Service
 
 func New() error {
-	configurationFolder, err := env.GetConfigurationFolder()
-
-	if err != nil {
-		logger.Errorf("failed to retrieve configuration folder path. %w", err)
-		return err
-	}
+	configurationFolder := env.ConfigurationFolder
 
 	config, err := readOAuthConfigFromFile(configurationFolder)
 

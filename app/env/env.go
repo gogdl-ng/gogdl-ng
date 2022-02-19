@@ -16,7 +16,39 @@ const (
 
 var logger = logging.NewLogger()
 
-func GetConfigurationFolder() (string, error) {
+var ConfigurationFolder string
+var CompletedFolder string
+var IncompleteFolder string
+
+func InitializeEnvironment() error {
+	configurationFolder, err := getConfigurationFolder()
+
+	if err != nil {
+		return err
+	}
+
+	ConfigurationFolder = configurationFolder
+
+	completedFolder, err := getCompletedFolder()
+
+	if err != nil {
+		return err
+	}
+
+	CompletedFolder = completedFolder
+
+	incompleteFolder, err := getIncompleteFolder()
+
+	if err != nil {
+		return err
+	}
+
+	IncompleteFolder = incompleteFolder
+
+	return nil
+}
+
+func getConfigurationFolder() (string, error) {
 	wd, err := os.Getwd()
 
 	if err != nil {
@@ -29,15 +61,15 @@ func GetConfigurationFolder() (string, error) {
 	return dir, nil
 }
 
-func GetIncompleteFolder() (string, error) {
+func getIncompleteFolder() (string, error) {
 	return getDownloadsFolderPath(incomplete)
 }
 
-func GetCompletedFolder() (string, error) {
+func getCompletedFolder() (string, error) {
 	return getDownloadsFolderPath(completed)
 }
 
-func GetDownloadFolder() (string, error) {
+func getDownloadFolder() (string, error) {
 	return getDownloadsFolderPath("")
 }
 
