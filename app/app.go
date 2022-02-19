@@ -21,9 +21,7 @@ func Run() {
 		logger.Fatalf("failed to initialize environment. %w", err)
 	}
 
-	conf, err := config.GetConfiguration()
-
-	if err != nil {
+	if err := config.LoadConfiguration(); err != nil {
 		logger.Fatalf("failed to retrieve application configuration. %w", err)
 	}
 
@@ -36,7 +34,7 @@ func Run() {
 
 	registerRoutes(router)
 
-	go listenAndServe(router, conf.Application.ListenPort)
+	go listenAndServe(router, config.Loaded.Application.ListenPort)
 
 	if err := download.Run(); err != nil {
 		log.Fatal(err)

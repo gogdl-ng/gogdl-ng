@@ -29,15 +29,11 @@ type Configuration struct {
 
 const CONFIGURATION_FILE = "config.toml"
 
-var config *Configuration = nil
+var Loaded *Configuration = nil
 
 var logger = logging.NewLogger()
 
-func GetConfiguration() (*Configuration, error) {
-	if config != nil {
-		return config, nil
-	}
-
+func LoadConfiguration() error {
 	var conf Configuration
 	path := filepath.Join(env.ConfigurationFolder, CONFIGURATION_FILE)
 
@@ -45,8 +41,9 @@ func GetConfiguration() (*Configuration, error) {
 
 	if err != nil {
 		logger.Errorf("failed to read configuration file. %w", err)
-		return nil, err
+		return err
 	}
 
-	return &conf, nil
+	Loaded = &conf
+	return nil
 }
