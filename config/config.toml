@@ -4,10 +4,12 @@ title = "gogdl-ng"
 # Defines the port on which the application is listening for requests.
 listenPort = 3200
 
-[googledrive]
+# Defines the location where to write the application log file.
+logFilePath = "/config/gogdl-ng.log"
+
+[transfer]
 # Defines if files which are flagged as malicious by Google Drive should be downloaded.
 acknowledgeAbuseFlag = true
 
-[transfer]
 # Defines how many times a failed download should be retried.
 retryThreeshold = 5

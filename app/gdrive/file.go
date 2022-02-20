@@ -12,34 +12,34 @@ import (
 	"google.golang.org/api/drive/v3"
 )
 
-func DownloadFile(folderPath string, driveFile *drive.File) error {
+func (service *DriveService) DownloadFile(folderPath string, driveFile *drive.File) error {
 	return retry.Do(func() error {
-		logger.Infof("starting to download file (name: %s, id: %s)", driveFile.Name, driveFile.Id)
+		service.logger.Infof("starting to download file (name: %s, id: %s)", driveFile.Name, driveFile.Id)
 
 		fp := filepath.Join(folderPath, driveFile.Name)
-		file, err := getLocalFile(fp, driveFile.Size)
+		file, err := service.getLocalFile(fp, driveFile.Size)
 
 		if err != nil {
-			logger.Errorf("failed to acquire local file: %v", err)
+			service.logger.Errorf("failed to acquire local file: %v", err)
 			return err
 		}
 
 		defer file.Close()
 
-		request := service.Files.Get(driveFile.Id).
+		request := service.drive.Files.Get(driveFile.Id).
 			SupportsAllDrives(true).
 			SupportsTeamDrives(true).
-			AcknowledgeAbuse(conf.GoogleDrive.AcknowledgeAbuseFlag)
+			AcknowledgeAbuse(service.conf.AcknowledgeAbuseFlag)
 
 		fi, err := file.Stat()
 
 		if err != nil {
-			logger.Errorf("failed to stat() file. %v", err)
+			service.logger.Errorf("failed to stat() file. %v", err)
 			return err
 		}
 
 		if fi.Size() == driveFile.Size {
-			logger.Infof("file is already finished. skipping.")
+			service.logger.Infof("file is already finished. skipping.")
 			return nil
 		}
 
@@ -48,43 +48,43 @@ func DownloadFile(folderPath string, driveFile *drive.File) error {
 		response, err := request.Download()
 
 		if err != nil {
-			logger.Errorf("failed to fetch file. %v", err)
+			service.logger.Errorf("failed to fetch file. %v", err)
 			return err
 		}
 
 		_, err = io.Copy(file, response.Body)
 
 		if err != nil {
-			logger.Errorf("failed to write buffer to file. %v", err)
+			service.logger.Errorf("failed to write buffer to file. %v", err)
 			return err
 		}
 
 		md5checksum, err := utils.GetMd5Checksum(fp)
 
 		if err != nil {
-			logger.Errorf("failed to calculate md5 checksum. %v", err)
+			service.logger.Errorf("failed to calculate md5 checksum. %v", err)
 			return err
 		}
 
 		if md5checksum != driveFile.Md5Checksum {
 			err = errors.New("md5 checksum mismatch")
-			logger.Errorf("the md5 checksum of the local file does not match checksum of the remote file. %v", err)
+			service.logger.Errorf("the md5 checksum of the local file does not match checksum of the remote file. %v", err)
 			return err
 		}
 
-		logger.Info("finished file download")
+		service.logger.Info("finished file download")
 		return nil
-	}, retry.Attempts(uint(conf.Transfer.RetryThreeshold)))
+	}, retry.Attempts(service.conf.RetryThreeshold))
 }
 
-func getLocalFile(path string, maxSize int64) (*os.File, error) {
+func (service *DriveService) getLocalFile(path string, maxSize int64) (*os.File, error) {
 	fi, err := os.Stat(path)
 
 	if errors.Is(err, os.ErrNotExist) {
 		f, err := os.Create(path)
 
 		if err != nil {
-			logger.Errorf("failed to create file. %v", err)
+			service.logger.Errorf("failed to create file. %v", err)
 			return nil, err
 		}
 
@@ -92,14 +92,14 @@ func getLocalFile(path string, maxSize int64) (*os.File, error) {
 	}
 
 	if fi.Size() > maxSize {
-		logger.Warnf("local file size is greater than remote. file is probably corrupt. removing it..")
+		service.logger.Warnf("local file size is greater than remote. file is probably corrupt. removing it..")
 		os.Remove(path)
 	}
 
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0755)
 
 	if err != nil {
-		logger.Errorf("failed to open file. %v", err)
+		service.logger.Errorf("failed to open file. %v", err)
 		return nil, err
 	}
 

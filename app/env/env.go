@@ -14,13 +14,15 @@ const (
 	incomplete = "incomplete"
 )
 
-var logger = logging.NewLogger()
-
 var ConfigurationFolder string
 var CompletedFolder string
 var IncompleteFolder string
 
-func InitializeEnvironment() error {
+var log logging.Logger = nil
+
+func NewEnvironment(logger logging.Logger) error {
+	log = logger
+
 	configurationFolder, err := getConfigurationFolder()
 
 	if err != nil {
@@ -52,14 +54,14 @@ func getConfigurationFolder() (string, error) {
 	wd, err := os.Getwd()
 
 	if err != nil {
-		logger.Errorf("failed to get current directory. %v", err)
+		log.Errorf("failed to get current directory. %v", err)
 		return "", err
 	}
 
 	path := filepath.Join(wd, config)
 
 	if err := os.MkdirAll(path, 0755); err != nil {
-		logger.Errorf("failed to create configuration folder. %v", err)
+		log.Errorf("failed to create configuration folder. %v", err)
 		return "", err
 	}
 
@@ -78,14 +80,14 @@ func getDownloadsFolderPath(lastPathSegment string) (string, error) {
 	wd, err := os.Getwd()
 
 	if err != nil {
-		logger.Errorf("failed to get current directory. %v", err)
+		log.Errorf("failed to get current directory. %v", err)
 		return "", err
 	}
 
 	path := filepath.Join(wd, downloads, lastPathSegment)
 
 	if err := os.MkdirAll(path, 0755); err != nil {
-		logger.Errorf("failed to create %s folder. %v", lastPathSegment, err)
+		log.Errorf("failed to create %s folder. %v", lastPathSegment, err)
 		return "", err
 	}
 

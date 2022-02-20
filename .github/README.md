@@ -12,5 +12,4 @@
 * OAuth 2.0 authorization
 * Integrity checks (MD5 checksum)
 * Transfer retries
-* Robust logging
 * Hassle-free setup thanks to Docker ❤︎
