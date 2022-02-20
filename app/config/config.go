@@ -39,7 +39,7 @@ func LoadConfiguration() error {
 	_, err := toml.DecodeFile(path, &conf)
 
 	if err != nil {
-		logger.Errorf("failed to read configuration file. %w", err)
+		logger.Errorf("failed to read configuration file. %v", err)
 		return err
 	}
 

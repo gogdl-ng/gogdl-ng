@@ -22,7 +22,7 @@ func Run() error {
 		folders, err := utils.Subfolders(env.IncompleteFolder)
 
 		if err != nil {
-			logger.Errorf("failed to retrieve subfolders. %w", err)
+			logger.Errorf("failed to retrieve subfolders. %v", err)
 			return err
 		}
 
@@ -31,24 +31,24 @@ func Run() error {
 			driveId, err := readDriveIdFile(folderPath)
 
 			if err != nil {
-				logger.Errorf("failed to read drive id file. skipping. %w", err)
+				logger.Errorf("failed to read drive id file. skipping. %v", err)
 				continue
 			}
 
 			driveFiles, err := gdrive.GetFilesFromFolder(driveId)
 
 			if err != nil {
-				logger.Errorf("failed to retrieve files from google drive. skipping. %w", err)
+				logger.Errorf("failed to retrieve files from google drive. skipping. %v", err)
 				continue
 			}
 
 			if err := downloadFiles(folderPath, driveFiles); err != nil {
-				logger.Errorf("failed to download files from google drive. skipping. %w", err)
+				logger.Errorf("failed to download files from google drive. skipping. %v", err)
 				continue
 			}
 
 			if err = utils.Move(folderPath, filepath.Join(env.CompletedFolder, folder.Name())); err != nil {
-				logger.Errorf("failed to move files to target path. skipping. %w", err)
+				logger.Errorf("failed to move files to target path. skipping. %v", err)
 				continue
 			}
 		}
@@ -60,13 +60,13 @@ func Run() error {
 func downloadFiles(targetPath string, files []*drive.File) error {
 	for _, driveFile := range files {
 		if err := gdrive.DownloadFile(targetPath, driveFile); err != nil {
-			logger.Errorf("failed to download file (name: %s, id: %s). %w", driveFile.Name, driveFile.Id, err)
+			logger.Errorf("failed to download file (name: %s, id: %s). %v", driveFile.Name, driveFile.Id, err)
 			return err
 		}
 	}
 
 	if err := deleteDriveIdFile(targetPath); err != nil {
-		logger.Errorf("failed to delete drive id file. %w", err)
+		logger.Errorf("failed to delete drive id file. %v", err)
 		return err
 	}
 

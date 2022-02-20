@@ -52,7 +52,7 @@ func getConfigurationFolder() (string, error) {
 	wd, err := os.Getwd()
 
 	if err != nil {
-		logger.Errorf("failed to get current directory. %w", err)
+		logger.Errorf("failed to get current directory. %v", err)
 		return "", err
 	}
 
@@ -78,7 +78,7 @@ func getDownloadsFolderPath(lastPathSegment string) (string, error) {
 	wd, err := os.Getwd()
 
 	if err != nil {
-		logger.Errorf("failed to get current directory. %w", err)
+		logger.Errorf("failed to get current directory. %v", err)
 		return "", err
 	}
 

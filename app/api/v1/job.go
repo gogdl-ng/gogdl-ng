@@ -16,7 +16,7 @@ func CreateDownloadJob() http.HandlerFunc {
 		var job download.Job
 
 		if err := json.NewDecoder(r.Body).Decode(&job); err != nil {
-			logger.Errorf("failed to decode request json to object. %w", err)
+			logger.Errorf("failed to decode request json to object. %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -24,13 +24,13 @@ func CreateDownloadJob() http.HandlerFunc {
 		folder, err := gdrive.GetFolderById(job.DriveId)
 
 		if err != nil {
-			logger.Errorf("failed to get google drive folder. %w", err)
+			logger.Errorf("failed to get google drive folder. %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		if err = download.RegisterNewJob(folder); err != nil {
-			logger.Errorf("failed to register a new job. %w", err)
+			logger.Errorf("failed to register a new job. %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 

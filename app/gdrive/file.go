@@ -20,7 +20,7 @@ func DownloadFile(folderPath string, driveFile *drive.File) error {
 		file, err := getLocalFile(fp, driveFile.Size)
 
 		if err != nil {
-			logger.Errorf("failed to acquire local file: %w", err)
+			logger.Errorf("failed to acquire local file: %v", err)
 			return err
 		}
 
@@ -34,7 +34,7 @@ func DownloadFile(folderPath string, driveFile *drive.File) error {
 		fi, err := file.Stat()
 
 		if err != nil {
-			logger.Errorf("failed to stat() file. %w", err)
+			logger.Errorf("failed to stat() file. %v", err)
 			return err
 		}
 
@@ -48,27 +48,27 @@ func DownloadFile(folderPath string, driveFile *drive.File) error {
 		response, err := request.Download()
 
 		if err != nil {
-			logger.Errorf("failed to fetch file. %w", err)
+			logger.Errorf("failed to fetch file. %v", err)
 			return err
 		}
 
 		_, err = io.Copy(file, response.Body)
 
 		if err != nil {
-			logger.Errorf("failed to write buffer to file. %w", err)
+			logger.Errorf("failed to write buffer to file. %v", err)
 			return err
 		}
 
 		md5checksum, err := utils.GetMd5Checksum(fp)
 
 		if err != nil {
-			logger.Errorf("failed to calculate md5 checksum. %w", err)
+			logger.Errorf("failed to calculate md5 checksum. %v", err)
 			return err
 		}
 
 		if md5checksum != driveFile.Md5Checksum {
 			err = errors.New("md5 checksum mismatch")
-			logger.Errorf("the md5 checksum of the local file does not match checksum of the remote file. %w", err)
+			logger.Errorf("the md5 checksum of the local file does not match checksum of the remote file. %v", err)
 			return err
 		}
 
@@ -84,7 +84,7 @@ func getLocalFile(path string, maxSize int64) (*os.File, error) {
 		f, err := os.Create(path)
 
 		if err != nil {
-			logger.Errorf("failed to create file. %w", err)
+			logger.Errorf("failed to create file. %v", err)
 			return nil, err
 		}
 
@@ -99,7 +99,7 @@ func getLocalFile(path string, maxSize int64) (*os.File, error) {
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0755)
 
 	if err != nil {
-		logger.Errorf("failed to open file. %w", err)
+		logger.Errorf("failed to open file. %v", err)
 		return nil, err
 	}
 
