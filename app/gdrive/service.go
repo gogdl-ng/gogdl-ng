@@ -138,6 +138,8 @@ func getTokenFromWeb(config *oauth2.Config) (*oauth2.Token, error) {
 		return nil, err
 	}
 
+	logger.Infof("auth code was: %s", authCode)
+
 	token, err := config.Exchange(context.TODO(), authCode)
 
 	if err != nil {
