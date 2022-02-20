@@ -56,9 +56,14 @@ func getConfigurationFolder() (string, error) {
 		return "", err
 	}
 
-	dir := filepath.Join(wd, config)
+	path := filepath.Join(wd, config)
 
-	return dir, nil
+	if err := os.MkdirAll(path, 0755); err != nil {
+		logger.Errorf("failed to create configuration folder. %v", err)
+		return "", err
+	}
+
+	return path, nil
 }
 
 func getIncompleteFolder() (string, error) {
@@ -69,10 +74,6 @@ func getCompletedFolder() (string, error) {
 	return getDownloadsFolderPath(completed)
 }
 
-func getDownloadFolder() (string, error) {
-	return getDownloadsFolderPath("")
-}
-
 func getDownloadsFolderPath(lastPathSegment string) (string, error) {
 	wd, err := os.Getwd()
 
@@ -81,7 +82,12 @@ func getDownloadsFolderPath(lastPathSegment string) (string, error) {
 		return "", err
 	}
 
-	dir := filepath.Join(wd, downloads, lastPathSegment)
+	path := filepath.Join(wd, downloads, lastPathSegment)
 
-	return dir, nil
+	if err := os.MkdirAll(path, 0755); err != nil {
+		logger.Errorf("failed to create %s folder. %v", lastPathSegment, err)
+		return "", err
+	}
+
+	return path, nil
 }
