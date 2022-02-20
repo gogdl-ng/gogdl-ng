@@ -6,7 +6,7 @@ services:
     container_name: gogdl-ng
     volumes:
       - ./config:/config
-      - ./gogdlDownloads:/downloads
+      - ./downloads:/downloads
     ports:
       - 3200:3200
     restart: always
