@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/LegendaryB/gogdl-ng/app/env"
 	"github.com/LegendaryB/gogdl-ng/app/gdrive"
 )
 
@@ -28,7 +29,7 @@ func RegisterNewJob(driveFolder *gdrive.DriveFolder) error {
 }
 
 func createJobFolder(folderName string) (string, error) {
-	path := filepath.Join(incompleteFolder, folderName)
+	path := filepath.Join(env.IncompleteFolder, folderName)
 
 	if err := os.MkdirAll(path, 0755); err != nil {
 		logger.Errorf("failed to create folder(s). %w", err)

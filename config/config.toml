@@ -1,0 +1,13 @@
+title = "gogdl-ng"
+
+[application]
+# Defines the port on which the application is listening for requests.
+listenPort = 3200
+
+[googledrive]
+# Defines if files which are flagged as malicious by Google Drive should be downloaded.
+acknowledgeAbuseFlag = true
+
+[transfer]
+# Defines how many times a failed download should be retried.
+retryThreeshold = 5

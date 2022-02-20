@@ -28,7 +28,8 @@ func DownloadFile(folderPath string, driveFile *drive.File) error {
 
 		request := service.Files.Get(driveFile.Id).
 			SupportsAllDrives(true).
-			SupportsTeamDrives(true)
+			SupportsTeamDrives(true).
+			AcknowledgeAbuse(conf.GoogleDrive.AcknowledgeAbuseFlag)
 
 		fi, err := file.Stat()
 
@@ -73,7 +74,7 @@ func DownloadFile(folderPath string, driveFile *drive.File) error {
 
 		logger.Info("finished file download")
 		return nil
-	}, retry.Attempts(5))
+	}, retry.Attempts(uint(conf.Transfer.RetryThreeshold)))
 }
 
 func getLocalFile(path string, maxSize int64) (*os.File, error) {
