@@ -1,9 +1,7 @@
 package download
 
 import (
-	"io/fs"
 	"path/filepath"
-	"reflect"
 	"time"
 
 	"github.com/LegendaryB/gogdl-ng/app/config"
@@ -44,7 +42,7 @@ func (service *Downloader) Run() error {
 		}
 
 		for _, folder := range folders {
-			path := filepath.Join(getFullPath(folder), folder.Name())
+			path := filepath.Join(env.IncompleteFolder, folder.Name())
 			driveId, err := service.readDriveIdFile(path)
 
 			service.logger.Infof("Job: '%s' | id: '%s'", folder.Name(), driveId)
@@ -94,10 +92,4 @@ func (service *Downloader) downloadFiles(targetPath string, files []*drive.File)
 	}
 
 	return nil
-}
-
-func getFullPath(fi fs.FileInfo) string {
-	fv := reflect.ValueOf(fi).Elem().FieldByName("path")
-
-	return fv.String()
 }
