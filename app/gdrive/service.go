@@ -34,21 +34,21 @@ func New() error {
 	config, err := readOAuthConfigFromFile(configurationFolder)
 
 	if err != nil {
-		logger.Errorf("failed to read oauth configuration from file. %w", err)
+		logger.Errorf("failed to read oauth configuration from file. %v", err)
 		return err
 	}
 
 	client, err := getAuthorizedHttpClient(configurationFolder, config)
 
 	if err != nil {
-		logger.Errorf("failed to retrieve authorized http client. %w", err)
+		logger.Errorf("failed to retrieve authorized http client. %v", err)
 		return err
 	}
 
 	driveService, err := drive.NewService(context.Background(), option.WithHTTPClient(client))
 
 	if err != nil {
-		logger.Errorf("failed to instantiate drive service. %w", err)
+		logger.Errorf("failed to instantiate drive service. %v", err)
 		return err
 	}
 
@@ -62,14 +62,14 @@ func readOAuthConfigFromFile(configurationDirectory string) (*oauth2.Config, err
 	bytes, err := ioutil.ReadFile(credentialsFile)
 
 	if err != nil {
-		logger.Errorf("failed to read credentials file. %w", err)
+		logger.Errorf("failed to read credentials file. %v", err)
 		return nil, err
 	}
 
 	config, err := google.ConfigFromJSON(bytes, drive.DriveReadonlyScope)
 
 	if err != nil {
-		logger.Errorf("failed to read configuration from credentials file. %w", err)
+		logger.Errorf("failed to read configuration from credentials file. %v", err)
 		return nil, err
 	}
 
@@ -82,11 +82,11 @@ func getAuthorizedHttpClient(configurationDirectory string, config *oauth2.Confi
 	token, err := getTokenFromFile(tokenFilePath)
 
 	if err != nil {
-		logger.Errorf("failed to retrieve token from file. trying to retrieve it via web. %w", err)
+		logger.Errorf("failed to retrieve token from file. trying to retrieve it via web. %v", err)
 		token, err = getTokenFromWeb(config)
 
 		if err != nil {
-			logger.Errorf("failed to retrieve token via web. %w", err)
+			logger.Errorf("failed to retrieve token via web. %v", err)
 			return nil, err
 		}
 
@@ -100,7 +100,7 @@ func getTokenFromFile(path string) (*oauth2.Token, error) {
 	f, err := os.Open(path)
 
 	if err != nil {
-		logger.Errorf("failed to open token file. %w", err)
+		logger.Errorf("failed to open token file. %v", err)
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func saveTokenToFile(path string, token *oauth2.Token) error {
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 
 	if err != nil {
-		logger.Errorf("failed to open token file. %w", err)
+		logger.Errorf("failed to open token file. %v", err)
 		return err
 	}
 
@@ -134,14 +134,14 @@ func getTokenFromWeb(config *oauth2.Config) (*oauth2.Token, error) {
 	var authCode string
 
 	if _, err := fmt.Scan(&authCode); err != nil {
-		logger.Errorf("failed to parse authorization code. %w", err)
+		logger.Errorf("failed to parse authorization code. %v", err)
 		return nil, err
 	}
 
 	token, err := config.Exchange(context.TODO(), authCode)
 
 	if err != nil {
-		logger.Errorf("failed to convert authorization code to token. %w", err)
+		logger.Errorf("failed to convert authorization code to token. %v", err)
 		return nil, err
 	}
 

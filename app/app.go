@@ -18,15 +18,15 @@ func Run() {
 	logger := logging.NewLogger()
 
 	if err := env.InitializeEnvironment(); err != nil {
-		logger.Fatalf("failed to initialize environment. %w", err)
+		logger.Fatalf("failed to initialize environment. %v", err)
 	}
 
 	if err := config.LoadConfiguration(); err != nil {
-		logger.Fatalf("failed to retrieve application configuration. %w", err)
+		logger.Fatalf("failed to retrieve application configuration. %v", err)
 	}
 
 	if err := gdrive.New(); err != nil {
-		logger.Fatalf("failed to initialize Google Drive service. %w", err)
+		logger.Fatalf("failed to initialize Google Drive service. %v", err)
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
