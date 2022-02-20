@@ -15,14 +15,14 @@ type DriveFolder struct {
 	Name string
 }
 
-func GetFilesFromFolder(folderId string) ([]*drive.File, error) {
+func (service *DriveService) GetFilesFromFolder(folderId string) ([]*drive.File, error) {
 	var children []*drive.File
 	var nextPageToken string
 
 	for {
 		query := fmt.Sprintf("'%s' in parents and mimeType != '%s' and trashed=false", folderId, folderMimeType)
 
-		serviceListCall := service.Files.List().
+		serviceListCall := service.drive.Files.List().
 			PageSize(maxPageSize).
 			OrderBy("name").
 			SupportsAllDrives(true).
@@ -39,7 +39,7 @@ func GetFilesFromFolder(folderId string) ([]*drive.File, error) {
 		list, err := serviceListCall.Do()
 
 		if err != nil {
-			logger.Errorf("failed to execute drive service call. %v", err)
+			service.logger.Errorf("Failed to execute drive service call. %v", err)
 			return nil, err
 		}
 
@@ -55,21 +55,21 @@ func GetFilesFromFolder(folderId string) ([]*drive.File, error) {
 	return children, nil
 }
 
-func GetFolderById(folderId string) (*DriveFolder, error) {
-	serviceGetCall := service.Files.Get(folderId).
+func (service *DriveService) GetFolderById(folderId string) (*DriveFolder, error) {
+	serviceGetCall := service.drive.Files.Get(folderId).
 		SupportsAllDrives(true).
 		SupportsTeamDrives(true)
 
 	file, err := serviceGetCall.Do()
 
 	if err != nil {
-		logger.Errorf("failed to execute drive service call. %v", err)
+		service.logger.Errorf("Failed to execute drive service call. %v", err)
 		return nil, err
 	}
 
 	if file.MimeType != folderMimeType {
 		err = fmt.Errorf("resource with id '%s' is not a folder", file.Id)
-		logger.Error(err)
+		service.logger.Error(err)
 
 		return nil, err
 	}

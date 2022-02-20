@@ -10,20 +10,25 @@ const LOG_FILE = "gogdl-ng.log"
 
 var logger *logrus.Logger = nil
 
-func NewLogger() *logrus.Logger {
-	if logger != nil {
-		return logger
-	}
+type Logger interface {
+	Info(...interface{})
+	Infof(string, ...interface{})
+	Warnf(string, ...interface{})
+	Error(...interface{})
+	Errorf(string, ...interface{})
+	Fatal(...interface{})
+	Fatalf(string, ...interface{})
+}
 
-	logger = logrus.New()
+func NewLogger(logFileName string) (*logrus.Logger, error) {
+	logger := logrus.New()
 	logger.Formatter = &logrus.JSONFormatter{}
 	logger.SetLevel(logrus.InfoLevel)
-	logger.SetOutput(os.Stdout)
 
-	file, err := os.OpenFile(LOG_FILE, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
+	file, err := os.OpenFile(logFileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
 
 	if err != nil {
-		logger.Fatal(err)
+		return nil, err
 	}
 
 	logger.SetOutput(file)
@@ -31,5 +36,5 @@ func NewLogger() *logrus.Logger {
 		file.Close()
 	})
 
-	return logger
+	return logger, nil
 }

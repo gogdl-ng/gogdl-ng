@@ -5,35 +5,33 @@ import (
 	"net/http"
 
 	"github.com/LegendaryB/gogdl-ng/app/download"
-	"github.com/LegendaryB/gogdl-ng/app/gdrive"
 	"github.com/LegendaryB/gogdl-ng/app/logging"
 )
 
-var logger = logging.NewLogger()
+type JobController struct {
+	logger     logging.Logger
+	downloader *download.Downloader
+}
 
-func CreateDownloadJob() http.HandlerFunc {
+func NewJobController(logger logging.Logger, downloader *download.Downloader) *JobController {
+	return &JobController{logger: logger, downloader: downloader}
+}
+
+func (controller *JobController) CreateDownloadJob() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var job download.Job
 
 		if err := json.NewDecoder(r.Body).Decode(&job); err != nil {
-			logger.Errorf("failed to decode request json to object. %v", err)
+			controller.logger.Errorf("failed to decode request json to object. %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		folder, err := gdrive.GetFolderById(job.DriveId)
-
-		if err != nil {
-			logger.Errorf("failed to get google drive folder. %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		if err = download.RegisterNewJob(folder); err != nil {
-			logger.Errorf("failed to register a new job. %v", err)
+		if err := controller.downloader.RegisterNewJob(job.DriveId); err != nil {
+			controller.logger.Errorf("failed to register a new job. %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
-		logger.Infof("registered new job (driveId: %s, driveName: %s)", folder.Id, folder.Name)
+		controller.logger.Infof("registered new job (driveId: %s)", job.DriveId)
 	}
 }

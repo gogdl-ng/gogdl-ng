@@ -5,44 +5,31 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/LegendaryB/gogdl-ng/app/env"
-	"github.com/LegendaryB/gogdl-ng/app/logging"
 )
 
 type ApplicationConfiguration struct {
-	ListenPort int
-}
-
-type GoogleDriveConfiguration struct {
-	AcknowledgeAbuseFlag bool
+	ListenPort  int
+	LogFilePath string
 }
 
 type TransferConfiguration struct {
-	RetryThreeshold int
+	RetryThreeshold uint
 }
 
 type Configuration struct {
 	Application ApplicationConfiguration
-	GoogleDrive GoogleDriveConfiguration
 	Transfer    TransferConfiguration
 }
 
-const CONFIGURATION_FILE = "config.toml"
-
-var Loaded *Configuration = nil
-
-var logger = logging.NewLogger()
-
-func LoadConfiguration() error {
+func NewConfigurationFromFile() (*Configuration, error) {
 	var conf Configuration
-	path := filepath.Join(env.ConfigurationFolder, CONFIGURATION_FILE)
+	path := filepath.Join(env.ConfigurationFolder, "config.toml")
 
 	_, err := toml.DecodeFile(path, &conf)
 
 	if err != nil {
-		logger.Errorf("failed to read configuration file. %v", err)
-		return err
+		return nil, err
 	}
 
-	Loaded = &conf
-	return nil
+	return &conf, nil
 }
