@@ -1,7 +1,6 @@
 package logging
 
 import (
-	"io"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -26,7 +25,7 @@ func NewLogger() *logrus.Logger {
 		logger.Fatal(err)
 	}
 
-	logger.SetOutput(io.MultiWriter(os.Stdout, file))
+	logger.SetOutput(file)
 	logrus.RegisterExitHandler(func() {
 		file.Close()
 	})
