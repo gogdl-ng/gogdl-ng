@@ -3,8 +3,6 @@ package env
 import (
 	"os"
 	"path/filepath"
-
-	"github.com/LegendaryB/gogdl-ng/app/logging"
 )
 
 const (
@@ -14,13 +12,11 @@ const (
 	incomplete = "incomplete"
 )
 
-var logger = logging.NewLogger()
-
 var ConfigurationFolder string
 var CompletedFolder string
 var IncompleteFolder string
 
-func InitializeEnvironment() error {
+func NewEnvironment() error {
 	configurationFolder, err := getConfigurationFolder()
 
 	if err != nil {
@@ -52,13 +48,16 @@ func getConfigurationFolder() (string, error) {
 	wd, err := os.Getwd()
 
 	if err != nil {
-		logger.Errorf("failed to get current directory. %w", err)
 		return "", err
 	}
 
-	dir := filepath.Join(wd, config)
+	path := filepath.Join(wd, config)
 
-	return dir, nil
+	if err := os.MkdirAll(path, 0755); err != nil {
+		return "", err
+	}
+
+	return path, nil
 }
 
 func getIncompleteFolder() (string, error) {
@@ -69,19 +68,18 @@ func getCompletedFolder() (string, error) {
 	return getDownloadsFolderPath(completed)
 }
 
-func getDownloadFolder() (string, error) {
-	return getDownloadsFolderPath("")
-}
-
 func getDownloadsFolderPath(lastPathSegment string) (string, error) {
 	wd, err := os.Getwd()
 
 	if err != nil {
-		logger.Errorf("failed to get current directory. %w", err)
 		return "", err
 	}
 
-	dir := filepath.Join(wd, downloads, lastPathSegment)
+	path := filepath.Join(wd, downloads, lastPathSegment)
 
-	return dir, nil
+	if err := os.MkdirAll(path, 0755); err != nil {
+		return "", err
+	}
+
+	return path, nil
 }

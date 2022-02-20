@@ -1,23 +1,20 @@
-FROM golang:1.16-alpine as build
+##
+## Build
+##
+FROM golang:1.16-alpine as build-env
 
-# gcc build base 
-RUN apk add build-base && \ 
-    mkdir -p /build
-
-#build
 COPY . /build
 WORKDIR /build
-RUN go build -o gogdl-ng .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o gogdl-ng .
 
-FROM golang:1.16-alpine
+##
+## Deploy
+##
+FROM gcr.io/distroless/static-debian11
 VOLUME config downloads
 
-# Create app folder and move binary
-WORKDIR /
-RUN mkdir -p /app
-
-COPY --from=build /build/gogdl-ng ./app/
+COPY --from=build-env /build/gogdl-ng /
 
 EXPOSE 3200
 
-CMD ["/app/gogdl-ng"]
+CMD ["/gogdl-ng"]
