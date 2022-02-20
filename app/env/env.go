@@ -3,8 +3,6 @@ package env
 import (
 	"os"
 	"path/filepath"
-
-	"github.com/LegendaryB/gogdl-ng/app/logging"
 )
 
 const (
@@ -18,11 +16,7 @@ var ConfigurationFolder string
 var CompletedFolder string
 var IncompleteFolder string
 
-var log logging.Logger = nil
-
-func NewEnvironment(logger logging.Logger) error {
-	log = logger
-
+func NewEnvironment() error {
 	configurationFolder, err := getConfigurationFolder()
 
 	if err != nil {
@@ -54,14 +48,12 @@ func getConfigurationFolder() (string, error) {
 	wd, err := os.Getwd()
 
 	if err != nil {
-		log.Errorf("failed to get current directory. %v", err)
 		return "", err
 	}
 
 	path := filepath.Join(wd, config)
 
 	if err := os.MkdirAll(path, 0755); err != nil {
-		log.Errorf("failed to create configuration folder. %v", err)
 		return "", err
 	}
 
@@ -80,14 +72,12 @@ func getDownloadsFolderPath(lastPathSegment string) (string, error) {
 	wd, err := os.Getwd()
 
 	if err != nil {
-		log.Errorf("failed to get current directory. %v", err)
 		return "", err
 	}
 
 	path := filepath.Join(wd, downloads, lastPathSegment)
 
 	if err := os.MkdirAll(path, 0755); err != nil {
-		log.Errorf("failed to create %s folder. %v", lastPathSegment, err)
 		return "", err
 	}
 

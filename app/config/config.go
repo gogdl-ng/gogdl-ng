@@ -13,8 +13,7 @@ type ApplicationConfiguration struct {
 }
 
 type TransferConfiguration struct {
-	AcknowledgeAbuseFlag bool
-	RetryThreeshold      uint
+	RetryThreeshold uint
 }
 
 type Configuration struct {

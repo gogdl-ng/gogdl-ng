@@ -32,26 +32,26 @@ type DriveService struct {
 func NewDriveService(conf *config.TransferConfiguration, logger logging.Logger) (*DriveService, error) {
 	configurationFolder := env.ConfigurationFolder
 
-	var service = &DriveService{logger: logger}
+	var service = &DriveService{conf: conf, logger: logger}
 
 	config, err := service.readOAuthConfigFromFile(configurationFolder)
 
 	if err != nil {
-		service.logger.Errorf("failed to read oauth configuration from file. %v", err)
+		service.logger.Errorf("Failed to read oauth configuration from file. %v", err)
 		return nil, err
 	}
 
 	client, err := service.getAuthorizedHttpClient(configurationFolder, config)
 
 	if err != nil {
-		service.logger.Errorf("failed to retrieve authorized http client. %v", err)
+		service.logger.Errorf("Failed to retrieve authorized http client. %v", err)
 		return nil, err
 	}
 
 	drive, err := drive.NewService(context.Background(), option.WithHTTPClient(client))
 
 	if err != nil {
-		service.logger.Errorf("failed to instantiate drive service. %v", err)
+		service.logger.Errorf("Failed to instantiate drive service. %v", err)
 		return nil, err
 	}
 
@@ -65,14 +65,14 @@ func (service *DriveService) readOAuthConfigFromFile(configurationDirectory stri
 	bytes, err := ioutil.ReadFile(credentialsFile)
 
 	if err != nil {
-		service.logger.Errorf("failed to read credentials file. %v", err)
+		service.logger.Errorf("Failed to read credentials file. %v", err)
 		return nil, err
 	}
 
 	config, err := google.ConfigFromJSON(bytes, drive.DriveReadonlyScope)
 
 	if err != nil {
-		service.logger.Errorf("failed to read configuration from credentials file. %v", err)
+		service.logger.Errorf("Failed to read configuration from credentials file. %v", err)
 		return nil, err
 	}
 
@@ -85,11 +85,11 @@ func (service *DriveService) getAuthorizedHttpClient(configurationDirectory stri
 	token, err := service.getTokenFromFile(tokenFilePath)
 
 	if err != nil {
-		service.logger.Errorf("failed to retrieve token from file. trying to retrieve it via web. %v", err)
+		service.logger.Errorf("Failed to retrieve token from file. trying to retrieve it via web. %v", err)
 		token, err = service.getTokenFromWeb(config)
 
 		if err != nil {
-			service.logger.Errorf("failed to retrieve token via web. %v", err)
+			service.logger.Errorf("Failed to retrieve token via web. %v", err)
 			return nil, err
 		}
 
@@ -103,7 +103,7 @@ func (service *DriveService) getTokenFromFile(path string) (*oauth2.Token, error
 	f, err := os.Open(path)
 
 	if err != nil {
-		service.logger.Errorf("failed to open token file. %v", err)
+		service.logger.Errorf("Failed to open token file. %v", err)
 		return nil, err
 	}
 
@@ -118,7 +118,7 @@ func (service *DriveService) saveTokenToFile(path string, token *oauth2.Token) e
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 
 	if err != nil {
-		service.logger.Errorf("failed to open token file. %v", err)
+		service.logger.Errorf("Failed to open token file. %v", err)
 		return err
 	}
 
@@ -137,16 +137,14 @@ func (service *DriveService) getTokenFromWeb(config *oauth2.Config) (*oauth2.Tok
 	var authCode string
 
 	if _, err := fmt.Scan(&authCode); err != nil {
-		service.logger.Errorf("failed to parse authorization code. %v", err)
+		service.logger.Errorf("Failed to parse authorization code. %v", err)
 		return nil, err
 	}
-
-	service.logger.Infof("auth code was: %s", authCode)
 
 	token, err := config.Exchange(context.TODO(), authCode)
 
 	if err != nil {
-		service.logger.Errorf("failed to convert authorization code to token. %v", err)
+		service.logger.Errorf("Failed to convert authorization code to token. %v", err)
 		return nil, err
 	}
 

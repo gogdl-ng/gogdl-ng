@@ -44,6 +44,8 @@ func GetMd5Checksum(path string) (string, error) {
 		return "", err
 	}
 
+	defer file.Close()
+
 	hash := md5.New()
 
 	if _, err = io.Copy(hash, file); err != nil {

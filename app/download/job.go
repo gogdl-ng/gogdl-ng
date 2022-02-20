@@ -15,19 +15,19 @@ func (service *Downloader) RegisterNewJob(driveId string) error {
 	driveFolder, err := service.drive.GetFolderById(driveId)
 
 	if err != nil {
-		service.logger.Errorf("failed to get google drive folder. %v", err)
+		service.logger.Errorf("Failed to get google drive folder. %v", err)
 		return err
 	}
 
 	path, err := service.createJobFolder(driveFolder.Name)
 
 	if err != nil {
-		service.logger.Errorf("failed to create job folder. %v", err)
+		service.logger.Errorf("Failed to create job folder. %v", err)
 		return err
 	}
 
 	if err := service.createDriveIdFile(path, driveFolder.Id); err != nil {
-		service.logger.Errorf("failed to create drive id file. %v", err)
+		service.logger.Errorf("Failed to create drive id file. %v", err)
 		return err
 	}
 

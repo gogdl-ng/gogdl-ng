@@ -25,11 +25,11 @@ func NewDownloader(conf *config.TransferConfiguration, logger logging.Logger) (*
 	drive, err := gdrive.NewDriveService(conf, logger)
 
 	if err != nil {
-		logger.Fatalf("failed to initialize Google Drive service. %v", err)
+		logger.Fatalf("Failed to initialize Google Drive service. %v", err)
 		return nil, err
 	}
 
-	return &Downloader{logger: logger, conf: conf, drive: drive}, nil
+	return &Downloader{conf: conf, logger: logger, drive: drive}, nil
 }
 
 func (service *Downloader) Run() error {
@@ -39,35 +39,41 @@ func (service *Downloader) Run() error {
 		folders, err := utils.Subfolders(env.IncompleteFolder)
 
 		if err != nil {
-			service.logger.Errorf("failed to retrieve subfolders. %v", err)
+			service.logger.Errorf("Failed to retrieve subfolders. %v", err)
 			return err
 		}
 
 		for _, folder := range folders {
-			folderPath := filepath.Join(getFullPath(folder), folder.Name())
-			driveId, err := service.readDriveIdFile(folderPath)
+			path := filepath.Join(getFullPath(folder), folder.Name())
+			driveId, err := service.readDriveIdFile(path)
+
+			service.logger.Infof("Job: '%s' | id: '%s'", folder.Name(), driveId)
 
 			if err != nil {
-				service.logger.Errorf("failed to read drive id file. skipping. %v", err)
+				service.logger.Errorf("Failed to read drive id file. Skipping.. %v", err)
 				continue
 			}
 
 			driveFiles, err := service.drive.GetFilesFromFolder(driveId)
 
 			if err != nil {
-				service.logger.Errorf("failed to retrieve files from google drive. skipping. %v", err)
+				service.logger.Errorf("Failed to retrieve files from google drive. Skipping.. %v", err)
 				continue
 			}
 
-			if err := service.downloadFiles(folderPath, driveFiles); err != nil {
-				service.logger.Errorf("failed to download files from google drive. skipping. %v", err)
+			if err := service.downloadFiles(path, driveFiles); err != nil {
+				service.logger.Errorf("Failed to download files from google drive. Skipping.. %v", err)
 				continue
 			}
 
-			if err = utils.Move(folderPath, filepath.Join(env.CompletedFolder, folder.Name())); err != nil {
-				service.logger.Errorf("failed to move files to target path. skipping. %v", err)
+			targetPath := filepath.Join(env.CompletedFolder, folder.Name())
+
+			if err = utils.Move(path, targetPath); err != nil {
+				service.logger.Errorf("Failed to move files to target path. Skipping.. %v", err)
 				continue
 			}
+
+			service.logger.Info("Job finished.")
 		}
 	}
 
@@ -77,13 +83,13 @@ func (service *Downloader) Run() error {
 func (service *Downloader) downloadFiles(targetPath string, files []*drive.File) error {
 	for _, driveFile := range files {
 		if err := service.drive.DownloadFile(targetPath, driveFile); err != nil {
-			service.logger.Errorf("failed to download file (name: %s, id: %s). %v", driveFile.Name, driveFile.Id, err)
+			service.logger.Errorf("Failed to download file (name: %s, id: %s). %v", driveFile.Name, driveFile.Id, err)
 			return err
 		}
 	}
 
 	if err := service.deleteDriveIdFile(targetPath); err != nil {
-		service.logger.Errorf("failed to delete drive id file. %v", err)
+		service.logger.Errorf("Failed to delete drive id file. %v", err)
 		return err
 	}
 

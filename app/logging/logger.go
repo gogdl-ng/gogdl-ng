@@ -20,7 +20,7 @@ type Logger interface {
 	Fatalf(string, ...interface{})
 }
 
-func NewLogger1(logFileName string) (*logrus.Logger, error) {
+func NewLogger(logFileName string) (*logrus.Logger, error) {
 	logger := logrus.New()
 	logger.Formatter = &logrus.JSONFormatter{}
 	logger.SetLevel(logrus.InfoLevel)
@@ -37,28 +37,4 @@ func NewLogger1(logFileName string) (*logrus.Logger, error) {
 	})
 
 	return logger, nil
-}
-
-func NewLogger() *logrus.Logger {
-	if logger != nil {
-		return logger
-	}
-
-	logger = logrus.New()
-	logger.Formatter = &logrus.JSONFormatter{}
-	logger.SetLevel(logrus.InfoLevel)
-	logger.SetOutput(os.Stdout)
-
-	file, err := os.OpenFile(LOG_FILE, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
-
-	if err != nil {
-		logger.Fatal(err)
-	}
-
-	logger.SetOutput(file)
-	logrus.RegisterExitHandler(func() {
-		file.Close()
-	})
-
-	return logger
 }

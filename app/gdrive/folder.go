@@ -39,7 +39,7 @@ func (service *DriveService) GetFilesFromFolder(folderId string) ([]*drive.File,
 		list, err := serviceListCall.Do()
 
 		if err != nil {
-			service.logger.Errorf("failed to execute drive service call. %v", err)
+			service.logger.Errorf("Failed to execute drive service call. %v", err)
 			return nil, err
 		}
 
@@ -63,7 +63,7 @@ func (service *DriveService) GetFolderById(folderId string) (*DriveFolder, error
 	file, err := serviceGetCall.Do()
 
 	if err != nil {
-		service.logger.Errorf("failed to execute drive service call. %v", err)
+		service.logger.Errorf("Failed to execute drive service call. %v", err)
 		return nil, err
 	}
 

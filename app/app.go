@@ -14,26 +14,26 @@ import (
 )
 
 func Run() {
+	if err := env.NewEnvironment(); err != nil {
+		log.Fatalf("Failed to initialize environment. %v", err)
+	}
+
 	conf, err := config.NewConfigurationFromFile()
 
 	if err != nil {
-		log.Fatalf("failed to retrieve app configuration. %v", err)
+		log.Fatalf("Failed to retrieve app configuration. %v", err)
 	}
 
-	logger, err := logging.NewLogger1(conf.Application.LogFilePath)
+	logger, err := logging.NewLogger(conf.Application.LogFilePath)
 
 	if err != nil {
-		log.Fatalf("failed to initialize logger. %s", err)
-	}
-
-	if err := env.NewEnvironment(logger); err != nil {
-		logger.Fatalf("failed to initialize environment. %v", err)
+		log.Fatalf("Failed to initialize logger. %s", err)
 	}
 
 	downloader, err := download.NewDownloader(&conf.Transfer, logger)
 
 	if err != nil {
-		logger.Fatalf("failed to initialize Downloader service. %v", err)
+		logger.Fatalf("Failed to initialize Downloader service. %v", err)
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
