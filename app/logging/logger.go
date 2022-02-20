@@ -17,6 +17,7 @@ func NewLogger() *logrus.Logger {
 
 	logger = logrus.New()
 	logger.Formatter = &logrus.JSONFormatter{}
+	logger.SetLevel(logrus.InfoLevel)
 	logger.SetOutput(os.Stdout)
 
 	file, err := os.OpenFile(LOG_FILE, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
