@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  gogdl-ng:
+    image: legendaryb/gogdl-ng:latest
+    container_name: gogdl-ng
+    volumes:
+      - ./config:/config
+      - ./gogdlDownloads:/downloads
+    ports:
+      - 3200:3200
+    restart: always
