@@ -17,7 +17,7 @@ func (service *DriveService) DownloadFile(folderPath string, driveFile *drive.Fi
 		service.logger.Infof("File: %s", driveFile.Name)
 
 		fp := filepath.Join(folderPath, driveFile.Name)
-		file, err := service.getLocalFile(fp, driveFile.Size)
+		file, err := service.getDestinationFile(fp, driveFile.Size)
 
 		if err != nil {
 			service.logger.Errorf("Failed to acquire local file: %v", err)
@@ -90,7 +90,7 @@ func (service *DriveService) compareChecksums(localFilePath string, remoteFileCh
 	return nil
 }
 
-func (service *DriveService) getLocalFile(path string, maxSize int64) (*os.File, error) {
+func (service *DriveService) getDestinationFile(path string, maxSize int64) (*os.File, error) {
 	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	if err != nil {
