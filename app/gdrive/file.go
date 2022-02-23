@@ -91,30 +91,39 @@ func (service *DriveService) compareChecksums(localFilePath string, remoteFileCh
 }
 
 func (service *DriveService) getLocalFile(path string, maxSize int64) (*os.File, error) {
-	fi, err := os.Stat(path)
-
-	if errors.Is(err, os.ErrNotExist) {
-		file, err := os.Create(path)
-
-		if err != nil {
-			service.logger.Errorf("Failed to create file. %v", err)
-			return nil, err
-		}
-
-		return file, nil
-	}
-
-	if fi.Size() > maxSize {
-		service.logger.Warnf("Size of local file > size of remote file. File will be removed because it is probably corrupted.")
-		os.Remove(path)
-	}
-
-	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0755)
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	if err != nil {
-		service.logger.Errorf("Failed to open file at path: %s. %v", path, err)
 		return nil, err
 	}
 
+	stat, err := file.Stat()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if stat.Size() > maxSize {
+		service.logger.Warnf("Size of local file > size of remote file. File will be truncated because it is probably corrupted.")
+
+		if err = truncate(file); err != nil {
+			return nil, err
+		}
+	}
+
 	return file, nil
+}
+
+func truncate(file *os.File) error {
+	if err := file.Truncate(0); err != nil {
+		return err
+	}
+
+	_, err := file.Seek(0, io.SeekStart)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
