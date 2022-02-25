@@ -5,24 +5,17 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 
 	"github.com/LegendaryB/gogdl-ng/app/utils"
 	"github.com/avast/retry-go"
 	"google.golang.org/api/drive/v3"
 )
 
-type DriveFile struct {
-	Path string
-	*drive.File
-}
-
-func (service *DriveService) DownloadFile(folderPath string, driveFile *drive.File) error {
+func (service *DriveService) DownloadFile(driveFile *drive.File, path string) error {
 	return retry.Do(func() error {
 		service.logger.Infof("File: %s", driveFile.Name)
 
-		fp := filepath.Join(folderPath, driveFile.Name)
-		file, err := service.getDestinationFile(fp, driveFile.Size)
+		file, err := service.getDestinationFile(path, driveFile.Size)
 
 		if err != nil {
 			service.logger.Errorf("Failed to get destination file: %v", err)
@@ -39,7 +32,7 @@ func (service *DriveService) DownloadFile(folderPath string, driveFile *drive.Fi
 		}
 
 		if fi.Size() == driveFile.Size {
-			if err := service.compareChecksums(fp, driveFile.Md5Checksum); err != nil {
+			if err := service.compareChecksums(path, driveFile.Md5Checksum); err != nil {
 				return err
 			}
 
@@ -67,13 +60,13 @@ func (service *DriveService) DownloadFile(folderPath string, driveFile *drive.Fi
 			return err
 		}
 
-		if err := service.compareChecksums(fp, driveFile.Md5Checksum); err != nil {
+		if err := service.compareChecksums(path, driveFile.Md5Checksum); err != nil {
 			return err
 		}
 
 		service.logger.Info("Finished file")
 		return nil
-	}, retry.Attempts(service.conf.RetryThreeshold))
+	}, retry.Attempts(service.conf.Jobs.RetryThreeshold))
 }
 
 func (service *DriveService) compareChecksums(localFilePath string, remoteFileChecksum string) error {

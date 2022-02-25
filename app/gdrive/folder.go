@@ -8,24 +8,17 @@ import (
 
 const serviceQuery = "nextPageToken, files(id, name, size, md5Checksum, mimeType, trashed)"
 const folderMimeType = "application/vnd.google-apps.folder"
-const maxPageSize = 100
 
-type DriveFolder struct {
-	Id   string
-	Name string
-
-	Path string
-}
-
-func (service *DriveService) GetFilesFromFolder(folderId string) ([]*drive.File, error) {
+func (service *DriveService) GetFilesFromFolder(folder *drive.File) ([]*drive.File, error) {
 	var children []*drive.File
 	var nextPageToken string
 
 	for {
-		query := fmt.Sprintf("'%s' in parents and mimeType != '%s' and trashed=false", folderId, folderMimeType)
+		query := fmt.Sprintf("'%s' in parents and mimeType != '%s' and trashed=false", folder.Id, folderMimeType)
 
 		serviceListCall := service.drive.Files.List().
-			PageSize(maxPageSize).
+			OrderBy("name").
+			PageSize(100).
 			SupportsAllDrives(true).
 			SupportsTeamDrives(true).
 			IncludeItemsFromAllDrives(true).
@@ -56,7 +49,7 @@ func (service *DriveService) GetFilesFromFolder(folderId string) ([]*drive.File,
 	return children, nil
 }
 
-func (service *DriveService) GetFolderById(folderId string) (*DriveFolder, error) {
+func (service *DriveService) GetFolderById(folderId string) (*drive.File, error) {
 	serviceGetCall := service.drive.Files.Get(folderId).
 		SupportsAllDrives(true).
 		SupportsTeamDrives(true)
@@ -75,8 +68,5 @@ func (service *DriveService) GetFolderById(folderId string) (*DriveFolder, error
 		return nil, err
 	}
 
-	return &DriveFolder{
-		Id:   file.Id,
-		Name: file.Name,
-	}, err
+	return file, nil
 }

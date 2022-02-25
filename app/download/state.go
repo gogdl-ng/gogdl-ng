@@ -1,4 +1,4 @@
-/* package download
+package download
 
 import (
 	"io/ioutil"
@@ -6,12 +6,10 @@ import (
 	"path/filepath"
 )
 
-const driveIdFileName = "drive-id"
-
-func (service *Downloader) createDriveIdFile(path string, driveId string) error {
+func (service *JobService) createDriveIdFile(path string, driveId string) error {
 	path = filepath.Join(path, driveIdFileName)
 
-	if err := ioutil.WriteFile(path, []byte(driveId), 0755); err != nil {
+	if err := ioutil.WriteFile(path, []byte(driveId), 0644); err != nil {
 		service.logger.Errorf("Failed to write to drive id file. %v", err)
 		return err
 	}
@@ -19,18 +17,18 @@ func (service *Downloader) createDriveIdFile(path string, driveId string) error 
 	return nil
 }
 
-func (service *Downloader) deleteDriveIdFile(path string) error {
+func (service *JobService) removeDriveIdFile(path string) error {
 	path = filepath.Join(path, driveIdFileName)
 
 	if err := os.Remove(path); err != nil {
-		service.logger.Errorf("Failed to delete drive id file. %v", err)
+		service.logger.Errorf("Failed to remove drive id file. %v", err)
 		return err
 	}
 
 	return nil
 }
 
-func (service *Downloader) readDriveIdFile(path string) (string, error) {
+func (service *JobService) readDriveIdFile(path string) (string, error) {
 	path = filepath.Join(path, driveIdFileName)
 
 	buf, err := ioutil.ReadFile(path)
@@ -44,4 +42,3 @@ func (service *Downloader) readDriveIdFile(path string) (string, error) {
 
 	return driveId, nil
 }
-*/

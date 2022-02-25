@@ -10,11 +10,11 @@ import (
 
 type JobController struct {
 	logger     logging.Logger
-	jobManager *download.JobManager
+	jobService *download.JobService
 }
 
-func NewJobController(logger logging.Logger, jobManager *download.JobManager) *JobController {
-	return &JobController{logger: logger, jobManager: jobManager}
+func NewJobController(logger logging.Logger, jobService *download.JobService) *JobController {
+	return &JobController{logger: logger, jobService: jobService}
 }
 
 func (controller *JobController) CreateJob() http.HandlerFunc {
@@ -36,15 +36,11 @@ func (controller *JobController) CreateJob() http.HandlerFunc {
 			http.Error(w, msg, http.StatusBadRequest)
 		}
 
-		createdJob := &download.Job{
-			DriveId: CreateJobRequest.DriveId,
-		}
-
-		if err := controller.jobManager.CreateJobPackage(createdJob); err != nil {
+		if err := controller.jobService.CreateJob(CreateJobRequest.DriveId); err != nil {
 			controller.logger.Errorf("failed to register a new job. %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
-		controller.logger.Infof("registered new job (driveId: %s)", createdJob.DriveId)
+		controller.logger.Infof("registered new job (driveId: %s)", CreateJobRequest.DriveId)
 	}
 }

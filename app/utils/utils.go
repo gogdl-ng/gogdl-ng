@@ -7,35 +7,7 @@ import (
 	"io/fs"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 )
-
-func Move(source string, target string) error {
-	if err := os.MkdirAll(target, 0755); err != nil {
-		return err
-	}
-
-	items, err := ioutil.ReadDir(source)
-
-	if err != nil {
-		return err
-	}
-
-	for _, item := range items {
-		sourcefp := filepath.Join(source, item.Name())
-		targetfp := filepath.Join(target, item.Name())
-
-		if err := os.Rename(sourcefp, targetfp); err != nil {
-			return err
-		}
-	}
-
-	if err = os.Remove(source); err != nil {
-		return err
-	}
-
-	return nil
-}
 
 func GetMd5Checksum(path string) (string, error) {
 	file, err := os.Open(path)

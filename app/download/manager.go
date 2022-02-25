@@ -1,44 +1,39 @@
 package download
 
 import (
-	"io/ioutil"
-	"os"
-	"path/filepath"
-
+	"github.com/LegendaryB/gogdl-ng/app/config"
 	"github.com/LegendaryB/gogdl-ng/app/gdrive"
 	"github.com/LegendaryB/gogdl-ng/app/logging"
+	"golang.org/x/net/context"
 	"google.golang.org/api/drive/v3"
 )
 
 const (
-	downloads  string = "downloads"
-	completed  string = "completed"
-	incomplete string = "incomplete"
+	downloads       string = "downloads"
+	completed       string = "completed"
+	incomplete      string = "incomplete"
+	driveIdFileName string = "driveId"
 )
 
-type JobManager struct {
-	logger logging.Logger
-	drive  *gdrive.DriveService
+type JobService struct {
+	logger     logging.Logger
+	drive      *gdrive.DriveService
+	dispatcher *Dispatcher
 
 	CompletedDirectoryPath  string
 	IncompleteDirectoryPath string
 }
 
+type Worker interface {
+	RunJob(job *Job)
+}
+
 type Job struct {
-	Remote *drive.File
-
-	DriveId string
-	Path    string
-
-	Files []*JobFile
+	Path string
+	*drive.File
 }
 
-type JobFile struct {
-	Remote *drive.File
-	Path   string
-}
-
-func NewJobManager(logger logging.Logger, drive *gdrive.DriveService) (*JobManager, error) {
+func NewJobService(logger logging.Logger, conf *config.Configuration, drive *gdrive.DriveService) (*JobService, error) {
 	completedDirectoryPath, err := createDownloadsDirectory(completed)
 
 	if err != nil {
@@ -51,62 +46,89 @@ func NewJobManager(logger logging.Logger, drive *gdrive.DriveService) (*JobManag
 		return nil, err
 	}
 
-	return &JobManager{
+	service := &JobService{
 		logger:                  logger,
 		drive:                   drive,
 		CompletedDirectoryPath:  completedDirectoryPath,
 		IncompleteDirectoryPath: incompleteDirectoryPath,
-	}, nil
+	}
+
+	service.dispatcher = NewDispatcher(service, conf.Jobs.MaxWorkers, conf.Jobs.QueueSize)
+
+	return service, nil
 }
 
-func (manager *JobManager) CreateJobPackage(job *Job) error {
+func (service *JobService) Run() error {
+	unfinishedJobs, err := service.GetUnfinishedJobs()
+
+	if err != nil {
+		return err
+	}
+
+	service.dispatcher.Start(context.Background())
+	service.dispatcher.Wait()
+
+	// todo: what when unfinished jobs > queueSize??
+	service.dispatcher.AddJobs(unfinishedJobs)
 
 	return nil
 }
 
-func (manager *JobManager) GetJobPackages() ([]*Job, error) {
+func (service *JobService) RunJob(job *Job) {
+	files, err := service.drive.GetFilesFromFolder(job.File)
+
+	if err != nil {
+		service.logger.Error("") // todo: log
+		return
+	}
+
+	for _, driveFile := range files {
+		path := service.getFileTargetPath(job, driveFile)
+
+		if err := service.drive.DownloadFile(driveFile, path); err != nil {
+			service.logger.Errorf("Failed to download file (name: %s, id: %s). %v", driveFile.Name, driveFile.Id, err)
+		}
+	}
+
+	service.FinishJob(job)
+}
+
+func (service *JobService) CreateJob(driveId string) error {
+	folder, err := service.drive.GetFolderById(driveId)
+
+	if err != nil {
+		return err
+	}
+
+	path, err := service.createJobDirectory(folder)
+
+	if err != nil {
+		return err
+	}
+
+	job := &Job{
+		Path: path,
+		File: folder,
+	}
+
+	service.dispatcher.AddJob(job)
+
+	return nil
+}
+
+func (service *JobService) GetUnfinishedJobs() ([]*Job, error) {
 
 	return nil, nil
 }
 
-func (manager *JobManager) FinishJobPackage() error {
+func (service *JobService) FinishJob(job *Job) error {
+	if err := service.removeDriveIdFile(job.Path); err != nil {
+		return err
+	}
+
+	if err := service.MoveToCompletedDirectory(job); err != nil {
+		return err
+	}
+
 	return nil
-}
-
-func createDownloadsDirectory(name string) (string, error) {
-	wd, err := os.Getwd()
-
-	if err != nil {
-		return "", err
-	}
-
-	path := filepath.Join(wd, downloads, name)
-
-	if err := os.MkdirAll(path, 0644); err != nil {
-		return "", err
-	}
-
-	return path, nil
-}
-
-func (manager *JobManager) getSubfolders(path string) ([]string, error) {
-	items, err := ioutil.ReadDir(path)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var subfolders []string
-
-	for _, item := range items {
-		if !item.IsDir() {
-			continue
-		}
-
-		path := filepath.Join(path, item.Name())
-
-		subfolders = append(subfolders, path)
-	}
-
-	return subfolders, nil
 }

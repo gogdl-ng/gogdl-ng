@@ -26,13 +26,13 @@ func Run() {
 		log.Fatalf("Failed to initialize logger. %s", err)
 	}
 
-	drive, err := gdrive.NewDriveService(&conf.Transfer, logger)
+	drive, err := gdrive.NewDriveService(conf, logger)
 
 	if err != nil {
 		logger.Fatalf("Failed to create Google Drive service. %v", err)
 	}
 
-	jobManager, err := download.NewJobManager(logger, drive)
+	jobService, err := download.NewJobService(logger, conf, drive)
 
 	if err != nil {
 		logger.Fatalf("Failed to create job manager. %v", err)
@@ -41,11 +41,13 @@ func Run() {
 	router := mux.NewRouter().StrictSlash(true)
 	router = router.PathPrefix("/api/v1").Subrouter()
 
-	jobController := api.NewJobController(logger, jobManager)
+	controller := api.NewJobController(logger, jobService)
 
-	router.HandleFunc("/jobs", jobController.CreateJob()).Methods("POST")
+	router.HandleFunc("/jobs", controller.CreateJob()).Methods("POST")
 
-	listenAndServe(router, conf.Application.ListenPort)
+	go listenAndServe(router, conf.Application.ListenPort)
+
+	jobService.Run()
 }
 
 func listenAndServe(router *mux.Router, listenPort int) {

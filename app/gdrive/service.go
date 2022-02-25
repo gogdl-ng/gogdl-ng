@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 
 	"github.com/LegendaryB/gogdl-ng/app/config"
-	"github.com/LegendaryB/gogdl-ng/app/env"
 	"github.com/LegendaryB/gogdl-ng/app/logging"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -25,23 +24,23 @@ const (
 
 type DriveService struct {
 	logger logging.Logger
-	conf   *config.TransferConfiguration
+	conf   *config.Configuration
 	drive  *drive.Service
 }
 
-func NewDriveService(conf *config.TransferConfiguration, logger logging.Logger) (*DriveService, error) {
-	configurationFolder := env.ConfigurationFolder
-
+func NewDriveService(conf *config.Configuration, logger logging.Logger) (*DriveService, error) {
 	var service = &DriveService{conf: conf, logger: logger}
 
-	config, err := service.readOAuthConfigFromFile(configurationFolder)
+	folderPath := conf.GetConfigurationFolderPath()
+
+	config, err := service.readOAuthConfigFromFile(folderPath)
 
 	if err != nil {
 		service.logger.Errorf("Failed to read oauth configuration from file. %v", err)
 		return nil, err
 	}
 
-	client, err := service.getAuthorizedHttpClient(configurationFolder, config)
+	client, err := service.getAuthorizedHttpClient(folderPath, config)
 
 	if err != nil {
 		service.logger.Errorf("Failed to retrieve authorized http client. %v", err)

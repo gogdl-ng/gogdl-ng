@@ -12,13 +12,17 @@ type ApplicationConfiguration struct {
 	LogFilePath string
 }
 
-type TransferConfiguration struct {
+type JobsConfiguration struct {
+	QueueSize       int
+	MaxWorkers      int
 	RetryThreeshold uint
 }
 
 type Configuration struct {
+	path string
+
 	Application ApplicationConfiguration
-	Transfer    TransferConfiguration
+	Jobs        JobsConfiguration
 }
 
 const (
@@ -40,7 +44,13 @@ func NewConfigurationFromFile() (*Configuration, error) {
 		return nil, err
 	}
 
+	conf.path = path
+
 	return &conf, nil
+}
+
+func (config *Configuration) GetConfigurationFolderPath() string {
+	return filepath.Dir(config.path)
 }
 
 func getConfigurationPath() (string, error) {

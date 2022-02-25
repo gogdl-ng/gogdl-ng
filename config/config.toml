@@ -7,6 +7,10 @@ listenPort = 3200
 # Defines the location where to write the application log file.
 logFilePath = "./config/gogdl-ng.log"
 
-[transfer]
+[jobs]
+queueSize = 10
+
+maxWorkers = 5
+
 # Defines how many times a failed download should be retried.
 retryThreeshold = 5
