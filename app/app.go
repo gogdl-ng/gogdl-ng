@@ -34,14 +34,13 @@ func Run() {
 	drive, err := gdrive.NewDriveService(&conf.Transfer, logger)
 
 	if err != nil {
-		logger.Fatalf("Failed to initialize Google Drive service. %v", err)
+		logger.Fatalf("Failed to create Google Drive service. %v", err)
 	}
 
-	// downloader, err := download.NewDownloader(&conf.Transfer, logger)
 	jobManager, err := download.NewJobManager(logger, drive)
 
 	if err != nil {
-		logger.Fatalf("Failed to initialize Downloader service. %v", err)
+		logger.Fatalf("Failed to create job manager. %v", err)
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
