@@ -53,7 +53,7 @@ func NewJobService(logger logging.Logger, conf *config.Configuration, drive *gdr
 		IncompleteDirectoryPath: incompleteDirectoryPath,
 	}
 
-	service.dispatcher = NewDispatcher(service, conf.Jobs.MaxWorkers, conf.Jobs.QueueSize)
+	service.dispatcher = NewDispatcher(service, conf.Queue.MaxWorkers, conf.Queue.Size)
 
 	return service, nil
 }
@@ -78,7 +78,7 @@ func (service *JobService) RunJob(job *Job) {
 	files, err := service.drive.GetFilesFromFolder(job.File)
 
 	if err != nil {
-		service.logger.Error("") // todo: log
+		service.logger.Errorf("failed to retrieve files of folder: '%s'. %v", job.Id, err)
 		return
 	}
 
@@ -86,7 +86,7 @@ func (service *JobService) RunJob(job *Job) {
 		path := service.getFileTargetPath(job, driveFile)
 
 		if err := service.drive.DownloadFile(driveFile, path); err != nil {
-			service.logger.Errorf("Failed to download file (name: %s, id: %s). %v", driveFile.Name, driveFile.Id, err)
+			service.logger.Errorf("failed to download file (name: %s, id: %s). %v", driveFile.Name, driveFile.Id, err)
 		}
 	}
 

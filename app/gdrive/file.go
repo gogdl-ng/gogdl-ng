@@ -66,7 +66,7 @@ func (service *DriveService) DownloadFile(driveFile *drive.File, path string) er
 
 		service.logger.Info("Finished file")
 		return nil
-	}, retry.Attempts(service.conf.Jobs.RetryThreeshold))
+	}, retry.Attempts(service.conf.Download.RetryThreeshold))
 }
 
 func (service *DriveService) compareChecksums(localFilePath string, remoteFileChecksum string) error {

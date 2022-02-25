@@ -7,10 +7,14 @@ listenPort = 3200
 # Defines the location where to write the application log file.
 logFilePath = "./config/gogdl-ng.log"
 
-[jobs]
-queueSize = 10
+[queue]
+# Defines the maximum capacity of the job queue.
+size = 1000
 
+# Defines how many workers can run concurrently.
 maxWorkers = 5
 
+[download]
 # Defines how many times a failed download should be retried.
 retryThreeshold = 5
+

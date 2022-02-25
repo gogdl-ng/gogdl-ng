@@ -12,9 +12,12 @@ type ApplicationConfiguration struct {
 	LogFilePath string
 }
 
-type JobsConfiguration struct {
-	QueueSize       int
-	MaxWorkers      int
+type QueueConfiguration struct {
+	Size       int
+	MaxWorkers int
+}
+
+type DownloadConfiguration struct {
 	RetryThreeshold uint
 }
 
@@ -22,7 +25,8 @@ type Configuration struct {
 	path string
 
 	Application ApplicationConfiguration
-	Jobs        JobsConfiguration
+	Queue       QueueConfiguration
+	Download    DownloadConfiguration
 }
 
 const (
