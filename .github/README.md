@@ -24,7 +24,7 @@ A self-hostable application to download files in a folder from Google Drive powe
 - The gogdl-ng browser [extension](https://github.com/gogdl-ng/gogdl-ng-webext).
 
 ## Installation
-1. Create a `config` folder and create a `config.toml` in it. Like this:
+1. Create a `config` folder and create a `config.toml` with the following content:
 ```toml
 title = "gogdl-ng"
 
