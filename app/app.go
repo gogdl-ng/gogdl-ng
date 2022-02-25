@@ -8,17 +8,12 @@ import (
 	"github.com/LegendaryB/gogdl-ng/app/api/v1"
 	"github.com/LegendaryB/gogdl-ng/app/config"
 	"github.com/LegendaryB/gogdl-ng/app/download"
-	"github.com/LegendaryB/gogdl-ng/app/env"
 	"github.com/LegendaryB/gogdl-ng/app/gdrive"
 	"github.com/LegendaryB/gogdl-ng/app/logging"
 	"github.com/gorilla/mux"
 )
 
 func Run() {
-	if err := env.NewEnvironment(); err != nil {
-		log.Fatalf("Failed to initialize environment. %v", err)
-	}
-
 	conf, err := config.NewConfigurationFromFile()
 
 	if err != nil {
