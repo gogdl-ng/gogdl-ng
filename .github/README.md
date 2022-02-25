@@ -25,7 +25,7 @@ A self-hostable application to download files in a folder from Google Drive powe
 
 ## Installation
 1. Create a `config` folder and create a `config.toml` in it. Like this:
-```
+```toml
 title = "gogdl-ng"
 
 [application]
