@@ -24,7 +24,28 @@ A self-hostable application to download files in a folder from Google Drive powe
 - The gogdl-ng browser [extension](https://github.com/gogdl-ng/gogdl-ng-webext).
 
 ## Installation
-1. Create a `config` folder and copy the `config.toml` into it.
+1. Create a `config` folder and create a `config.toml` in it. Like this:
+```
+title = "gogdl-ng"
+
+[application]
+# Defines the port on which the application is listening for requests.
+listenPort = 3200
+
+# Defines the location where to write the application log file.
+logFilePath = "./config/gogdl-ng.log"
+
+[queue]
+# Defines the maximum capacity of the job queue.
+size = 1000
+
+# Defines how many workers can run concurrently.
+maxWorkers = 5
+
+[download]
+# Defines how many times a failed download should be retried.
+retryThreeshold = 5
+```
 2. Copy the `*.json ` file which you got at the end of the Google Cloud Platform project guide into the `config` folder. Rename it to `credentials.json`.
 3. Start the container once with `docker run`. Like this:  
 `docker run -i -p 3200:3200 -v /path/to/config:/config -v /path/to/downloads:/downloads legendaryb/gogdl-ng:latest`  
