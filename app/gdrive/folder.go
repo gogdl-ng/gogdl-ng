@@ -13,6 +13,8 @@ const maxPageSize = 100
 type DriveFolder struct {
 	Id   string
 	Name string
+
+	Path string
 }
 
 func (service *DriveService) GetFilesFromFolder(folderId string) ([]*drive.File, error) {
@@ -24,7 +26,6 @@ func (service *DriveService) GetFilesFromFolder(folderId string) ([]*drive.File,
 
 		serviceListCall := service.drive.Files.List().
 			PageSize(maxPageSize).
-			OrderBy("name").
 			SupportsAllDrives(true).
 			SupportsTeamDrives(true).
 			IncludeItemsFromAllDrives(true).

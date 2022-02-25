@@ -1,4 +1,4 @@
-package download
+/* package download
 
 import (
 	"io/ioutil"
@@ -44,3 +44,4 @@ func (service *Downloader) readDriveIdFile(path string) (string, error) {
 
 	return driveId, nil
 }
+*/

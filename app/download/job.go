@@ -1,4 +1,4 @@
-package download
+/*package download
 
 import (
 	"os"
@@ -6,10 +6,6 @@ import (
 
 	"github.com/LegendaryB/gogdl-ng/app/env"
 )
-
-type Job struct {
-	DriveId string
-}
 
 func (service *Downloader) RegisterNewJob(driveId string) error {
 	driveFolder, err := service.drive.GetFolderById(driveId)
@@ -44,3 +40,4 @@ func (service *Downloader) createJobFolder(folderName string) (string, error) {
 
 	return path, nil
 }
+*/

@@ -1,3 +1,4 @@
+/*
 package download
 
 import (
@@ -93,3 +94,4 @@ func (service *Downloader) downloadFiles(targetPath string, files []*drive.File)
 
 	return nil
 }
+*/

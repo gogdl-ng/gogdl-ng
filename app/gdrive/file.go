@@ -12,6 +12,11 @@ import (
 	"google.golang.org/api/drive/v3"
 )
 
+type DriveFile struct {
+	Path string
+	*drive.File
+}
+
 func (service *DriveService) DownloadFile(folderPath string, driveFile *drive.File) error {
 	return retry.Do(func() error {
 		service.logger.Infof("File: %s", driveFile.Name)
@@ -20,7 +25,7 @@ func (service *DriveService) DownloadFile(folderPath string, driveFile *drive.Fi
 		file, err := service.getDestinationFile(fp, driveFile.Size)
 
 		if err != nil {
-			service.logger.Errorf("Failed to acquire local file: %v", err)
+			service.logger.Errorf("Failed to get destination file: %v", err)
 			return err
 		}
 

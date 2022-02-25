@@ -9,6 +9,7 @@ import (
 	"github.com/LegendaryB/gogdl-ng/app/config"
 	"github.com/LegendaryB/gogdl-ng/app/download"
 	"github.com/LegendaryB/gogdl-ng/app/env"
+	"github.com/LegendaryB/gogdl-ng/app/gdrive"
 	"github.com/LegendaryB/gogdl-ng/app/logging"
 	"github.com/gorilla/mux"
 )
@@ -30,7 +31,14 @@ func Run() {
 		log.Fatalf("Failed to initialize logger. %s", err)
 	}
 
-	downloader, err := download.NewDownloader(&conf.Transfer, logger)
+	drive, err := gdrive.NewDriveService(&conf.Transfer, logger)
+
+	if err != nil {
+		logger.Fatalf("Failed to initialize Google Drive service. %v", err)
+	}
+
+	// downloader, err := download.NewDownloader(&conf.Transfer, logger)
+	jobManager, err := download.NewJobManager(logger, drive)
 
 	if err != nil {
 		logger.Fatalf("Failed to initialize Downloader service. %v", err)
@@ -39,15 +47,11 @@ func Run() {
 	router := mux.NewRouter().StrictSlash(true)
 	router = router.PathPrefix("/api/v1").Subrouter()
 
-	jobController := api.NewJobController(logger, downloader)
+	jobController := api.NewJobController(logger, jobManager)
 
-	router.HandleFunc("/jobs", jobController.CreateDownloadJob()).Methods("POST")
+	router.HandleFunc("/jobs", jobController.CreateJob()).Methods("POST")
 
-	go listenAndServe(router, conf.Application.ListenPort)
-
-	if err := downloader.Run(); err != nil {
-		logger.Fatal(err)
-	}
+	listenAndServe(router, conf.Application.ListenPort)
 }
 
 func listenAndServe(router *mux.Router, listenPort int) {
