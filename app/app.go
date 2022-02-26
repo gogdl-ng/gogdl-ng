@@ -32,7 +32,7 @@ func Run() {
 		logger.Fatalf("Failed to create Google Drive service. %v", err)
 	}
 
-	jobService, err := download.NewJobService(logger, conf, drive)
+	jobManager, err := download.NewJobManager(logger, conf, drive)
 
 	if err != nil {
 		logger.Fatalf("Failed to create job manager. %v", err)
@@ -41,13 +41,13 @@ func Run() {
 	router := mux.NewRouter().StrictSlash(true)
 	router = router.PathPrefix("/api/v1").Subrouter()
 
-	controller := api.NewJobController(logger, jobService)
+	controller := api.NewJobController(logger, jobManager)
 
 	router.HandleFunc("/jobs", controller.CreateJob()).Methods("POST")
 
 	go listenAndServe(router, conf.Application.ListenPort)
 
-	jobService.Run()
+	jobManager.Run()
 }
 
 func listenAndServe(router *mux.Router, listenPort int) {

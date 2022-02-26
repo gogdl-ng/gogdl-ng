@@ -15,7 +15,7 @@ const (
 	driveIdFileName string = "driveId"
 )
 
-type JobService struct {
+type JobManager struct {
 	logger     logging.Logger
 	drive      *gdrive.DriveService
 	dispatcher *Dispatcher
@@ -33,7 +33,7 @@ type Job struct {
 	*drive.File
 }
 
-func NewJobService(logger logging.Logger, conf *config.Configuration, drive *gdrive.DriveService) (*JobService, error) {
+func NewJobService(logger logging.Logger, conf *config.Configuration, drive *gdrive.DriveService) (*JobManager, error) {
 	completedDirectoryPath, err := createDownloadsDirectory(completed)
 
 	if err != nil {
@@ -46,7 +46,7 @@ func NewJobService(logger logging.Logger, conf *config.Configuration, drive *gdr
 		return nil, err
 	}
 
-	service := &JobService{
+	service := &JobManager{
 		logger:                  logger,
 		drive:                   drive,
 		CompletedDirectoryPath:  completedDirectoryPath,
@@ -58,23 +58,23 @@ func NewJobService(logger logging.Logger, conf *config.Configuration, drive *gdr
 	return service, nil
 }
 
-func (service *JobService) Run() error {
-	unfinishedJobs, err := service.GetUnfinishedJobs()
+func (jm *JobManager) Run() error {
+	unfinishedJobs, err := jm.GetUnfinishedJobs()
 
 	if err != nil {
 		return err
 	}
 
-	service.dispatcher.Start(context.Background())
-	service.dispatcher.Wait()
+	jm.dispatcher.Start(context.Background())
+	jm.dispatcher.Wait()
 
 	// todo: what when unfinished jobs > queueSize??
-	service.dispatcher.AddJobs(unfinishedJobs)
+	jm.dispatcher.AddJobs(unfinishedJobs)
 
 	return nil
 }
 
-func (service *JobService) RunJob(job *Job) {
+func (service *JobManager) RunJob(job *Job) {
 	files, err := service.drive.GetFilesFromFolder(job.File)
 
 	if err != nil {
@@ -93,7 +93,7 @@ func (service *JobService) RunJob(job *Job) {
 	service.FinishJob(job)
 }
 
-func (service *JobService) CreateJob(driveId string) error {
+func (service *JobManager) CreateJob(driveId string) error {
 	folder, err := service.drive.GetFolderById(driveId)
 
 	if err != nil {
@@ -116,12 +116,12 @@ func (service *JobService) CreateJob(driveId string) error {
 	return nil
 }
 
-func (service *JobService) GetUnfinishedJobs() ([]*Job, error) {
+func (service *JobManager) GetUnfinishedJobs() ([]*Job, error) {
 
 	return nil, nil
 }
 
-func (service *JobService) FinishJob(job *Job) error {
+func (service *JobManager) FinishJob(job *Job) error {
 	if err := service.removeDriveIdFile(job.Path); err != nil {
 		return err
 	}
