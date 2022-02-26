@@ -33,7 +33,7 @@ type Job struct {
 	*drive.File
 }
 
-func NewJobService(logger logging.Logger, conf *config.Configuration, drive *gdrive.DriveService) (*JobManager, error) {
+func NewJobManager(logger logging.Logger, conf *config.Configuration, drive *gdrive.DriveService) (*JobManager, error) {
 	completedDirectoryPath, err := createDownloadsDirectory(completed)
 
 	if err != nil {
@@ -74,33 +74,33 @@ func (jm *JobManager) Run() error {
 	return nil
 }
 
-func (service *JobManager) RunJob(job *Job) {
-	files, err := service.drive.GetFilesFromFolder(job.File)
+func (jm *JobManager) RunJob(job *Job) {
+	files, err := jm.drive.GetFilesFromFolder(job.File)
 
 	if err != nil {
-		service.logger.Errorf("failed to retrieve files of folder: '%s'. %v", job.Id, err)
+		jm.logger.Errorf("failed to retrieve files of folder: '%s'. %v", job.Id, err)
 		return
 	}
 
 	for _, driveFile := range files {
-		path := service.getFileTargetPath(job, driveFile)
+		path := jm.getFileTargetPath(job, driveFile)
 
-		if err := service.drive.DownloadFile(driveFile, path); err != nil {
-			service.logger.Errorf("failed to download file (name: %s, id: %s). %v", driveFile.Name, driveFile.Id, err)
+		if err := jm.drive.DownloadFile(driveFile, path); err != nil {
+			jm.logger.Errorf("failed to download file (name: %s, id: %s). %v", driveFile.Name, driveFile.Id, err)
 		}
 	}
 
-	service.FinishJob(job)
+	jm.FinishJob(job)
 }
 
-func (service *JobManager) CreateJob(driveId string) error {
-	folder, err := service.drive.GetFolderById(driveId)
+func (jm *JobManager) CreateJob(driveId string) error {
+	folder, err := jm.drive.GetFolderById(driveId)
 
 	if err != nil {
 		return err
 	}
 
-	path, err := service.createJobDirectory(folder)
+	path, err := jm.createJobDirectory(folder)
 
 	if err != nil {
 		return err
@@ -111,22 +111,22 @@ func (service *JobManager) CreateJob(driveId string) error {
 		File: folder,
 	}
 
-	service.dispatcher.AddJob(job)
+	jm.dispatcher.AddJob(job)
 
 	return nil
 }
 
-func (service *JobManager) GetUnfinishedJobs() ([]*Job, error) {
+func (jm *JobManager) GetUnfinishedJobs() ([]*Job, error) {
 
 	return nil, nil
 }
 
-func (service *JobManager) FinishJob(job *Job) error {
-	if err := service.removeDriveIdFile(job.Path); err != nil {
+func (jm *JobManager) FinishJob(job *Job) error {
+	if err := jm.removeDriveIdFile(job.Path); err != nil {
 		return err
 	}
 
-	if err := service.MoveToCompletedDirectory(job); err != nil {
+	if err := jm.MoveToCompletedDirectory(job); err != nil {
 		return err
 	}
 

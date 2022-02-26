@@ -8,21 +8,21 @@ import (
 	"google.golang.org/api/drive/v3"
 )
 
-func (service *JobManager) createJobDirectory(driveFolder *drive.File) (string, error) {
-	path := filepath.Join(service.IncompleteDirectoryPath, driveFolder.Name)
+func (jm *JobManager) createJobDirectory(driveFolder *drive.File) (string, error) {
+	path := filepath.Join(jm.IncompleteDirectoryPath, driveFolder.Name)
 
 	if err := os.MkdirAll(path, 0644); err != nil {
 		return "", err
 	}
 
-	if err := service.createDriveIdFile(path, driveFolder.Id); err != nil {
+	if err := jm.createDriveIdFile(path, driveFolder.Id); err != nil {
 		return "", err
 	}
 
 	return path, nil
 }
 
-func (service *JobManager) getFileTargetPath(job *Job, driveFile *drive.File) string {
+func (jm *JobManager) getFileTargetPath(job *Job, driveFile *drive.File) string {
 	return filepath.Join(job.Path, driveFile.Name)
 }
 
@@ -42,8 +42,8 @@ func createDownloadsDirectory(folderName string) (string, error) {
 	return path, nil
 }
 
-func (service *JobManager) MoveToCompletedDirectory(job *Job) error {
-	targetPath := filepath.Join(service.CompletedDirectoryPath, filepath.Base(job.Path))
+func (jm *JobManager) MoveToCompletedDirectory(job *Job) error {
+	targetPath := filepath.Join(jm.CompletedDirectoryPath, filepath.Base(job.Path))
 
 	if err := os.MkdirAll(targetPath, 0644); err != nil {
 		return err
