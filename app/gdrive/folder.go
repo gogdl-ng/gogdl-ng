@@ -6,9 +6,6 @@ import (
 	"google.golang.org/api/drive/v3"
 )
 
-const serviceQuery = "nextPageToken, files(id, name, size, md5Checksum, mimeType, trashed)"
-const folderMimeType = "application/vnd.google-apps.folder"
-
 func (s *DriveService) GetFiles(folder *drive.File) ([]*drive.File, error) {
 	var children []*drive.File
 	var nextPageToken string
@@ -16,30 +13,15 @@ func (s *DriveService) GetFiles(folder *drive.File) ([]*drive.File, error) {
 	for {
 		query := fmt.Sprintf("'%s' in parents and mimeType != '%s' and trashed=false", folder.Id, folderMimeType)
 
-		serviceListCall := s.drive.Files.List().
-			OrderBy("name").
-			PageSize(100).
-			SupportsAllDrives(true).
-			SupportsTeamDrives(true).
-			IncludeItemsFromAllDrives(true).
-			IncludeTeamDriveItems(true).
-			Fields(serviceQuery).
-			Q(query)
-
-		if len(nextPageToken) == 0 {
-			serviceListCall.PageToken(nextPageToken)
-		}
-
-		list, err := serviceListCall.Do()
+		fileList, err := s.requestFiles(query, nextPageToken)
 
 		if err != nil {
 			s.logger.Errorf("failed to execute Google Drive api request. %v", err)
 			return nil, err
 		}
 
-		children = append(children, list.Files...)
-
-		nextPageToken = list.NextPageToken
+		children = append(children, fileList.Files...)
+		nextPageToken = fileList.NextPageToken
 
 		if len(nextPageToken) == 0 {
 			break
@@ -50,11 +32,7 @@ func (s *DriveService) GetFiles(folder *drive.File) ([]*drive.File, error) {
 }
 
 func (s *DriveService) GetFolder(folderId string) (*drive.File, error) {
-	serviceGetCall := s.drive.Files.Get(folderId).
-		SupportsAllDrives(true).
-		SupportsTeamDrives(true)
-
-	file, err := serviceGetCall.Do()
+	file, err := s.requestFile(folderId)
 
 	if err != nil {
 		s.logger.Errorf("failed to execute Google Drive api request. %v", err)
@@ -69,4 +47,42 @@ func (s *DriveService) GetFolder(folderId string) (*drive.File, error) {
 	}
 
 	return file, nil
+}
+
+func (s *DriveService) requestFile(id string) (*drive.File, error) {
+	serviceGetCall := s.drive.Files.Get(id).
+		SupportsAllDrives(true).
+		SupportsTeamDrives(true)
+
+	file, err := serviceGetCall.Do()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return file, nil
+}
+
+func (s *DriveService) requestFiles(query string, nextPageToken string) (*drive.FileList, error) {
+	serviceListCall := s.drive.Files.List().
+		OrderBy("name").
+		PageSize(100).
+		SupportsAllDrives(true).
+		SupportsTeamDrives(true).
+		IncludeItemsFromAllDrives(true).
+		IncludeTeamDriveItems(true).
+		Fields("nextPageToken, files(id, name, size, md5Checksum, mimeType, trashed)").
+		Q(query)
+
+	if len(nextPageToken) == 0 {
+		serviceListCall.PageToken(nextPageToken)
+	}
+
+	fileList, err := serviceListCall.Do()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return fileList, nil
 }

@@ -41,7 +41,7 @@ func (ds *DriveService) DownloadFile(driveFile *drive.File, path string) error {
 			return nil
 		}
 
-		response, err := ds.downloadFile(driveFile, fi.Size())
+		response, err := ds.requestFileContent(driveFile, fi.Size())
 
 		if err != nil {
 			return err
@@ -63,7 +63,7 @@ func (ds *DriveService) DownloadFile(driveFile *drive.File, path string) error {
 	}, retry.Attempts(ds.conf.Download.RetryThreeshold))
 }
 
-func (ds *DriveService) downloadFile(driveFile *drive.File, rangeStart int64) (*http.Response, error) {
+func (ds *DriveService) requestFileContent(driveFile *drive.File, rangeStart int64) (*http.Response, error) {
 	request := ds.drive.Files.Get(driveFile.Id).
 		SupportsAllDrives(true).
 		SupportsTeamDrives(true)
