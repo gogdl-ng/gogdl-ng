@@ -10,7 +10,7 @@ func (jm *JobManager) createDriveIdFile(path string, driveId string) error {
 	path = filepath.Join(path, driveIdFileName)
 
 	if err := ioutil.WriteFile(path, []byte(driveId), 0644); err != nil {
-		jm.logger.Errorf("Failed to write to drive id file. %v", err)
+		jm.logger.Errorf("failed to write drive id file. %v", err)
 		return err
 	}
 
@@ -21,7 +21,7 @@ func (jm *JobManager) removeDriveIdFile(path string) error {
 	path = filepath.Join(path, driveIdFileName)
 
 	if err := os.Remove(path); err != nil {
-		jm.logger.Errorf("Failed to remove drive id file. %v", err)
+		jm.logger.Errorf("failed to remove drive id file. %v", err)
 		return err
 	}
 
@@ -34,7 +34,7 @@ func (jm *JobManager) readDriveIdFile(path string) (string, error) {
 	buf, err := ioutil.ReadFile(path)
 
 	if err != nil {
-		jm.logger.Errorf("Failed to read from drive id file. %v", err)
+		jm.logger.Errorf("failed to read drive id file. %v", err)
 		return "", err
 	}
 

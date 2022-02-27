@@ -59,23 +59,23 @@ func NewJobManager(logger logging.Logger, conf *config.Configuration, drive *gdr
 }
 
 func (jm *JobManager) Run() error {
-	unfinishedJobs, err := jm.GetUnfinishedJobs()
+	unfinishedJobs, err := jm.getNotCompletedJobs()
 
 	if err != nil {
 		return err
 	}
 
-	jm.dispatcher.Start(context.Background())
-	jm.dispatcher.Wait()
-
 	// todo: what when unfinished jobs > queueSize??
 	jm.dispatcher.AddJobs(unfinishedJobs)
+
+	jm.dispatcher.Start(context.Background())
+	jm.dispatcher.Wait()
 
 	return nil
 }
 
 func (jm *JobManager) RunJob(job *Job) {
-	files, err := jm.drive.GetFilesFromFolder(job.File)
+	files, err := jm.drive.GetFiles(job.File)
 
 	if err != nil {
 		jm.logger.Errorf("failed to retrieve files of folder: '%s'. %v", job.Id, err)
@@ -94,7 +94,7 @@ func (jm *JobManager) RunJob(job *Job) {
 }
 
 func (jm *JobManager) CreateJob(driveId string) error {
-	folder, err := jm.drive.GetFolderById(driveId)
+	folder, err := jm.drive.GetFolder(driveId)
 
 	if err != nil {
 		return err
@@ -116,19 +116,46 @@ func (jm *JobManager) CreateJob(driveId string) error {
 	return nil
 }
 
-func (jm *JobManager) GetUnfinishedJobs() ([]*Job, error) {
-
-	return nil, nil
-}
-
 func (jm *JobManager) FinishJob(job *Job) error {
 	if err := jm.removeDriveIdFile(job.Path); err != nil {
 		return err
 	}
 
-	if err := jm.MoveToCompletedDirectory(job); err != nil {
+	if err := jm.moveToCompletedDirectory(job); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (jm *JobManager) getNotCompletedJobs() ([]*Job, error) {
+	subfolders, err := jm.getSubfolders(jm.IncompleteDirectoryPath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var jobs []*Job
+
+	for _, path := range subfolders {
+		driveId, err := jm.readDriveIdFile(path)
+
+		if err != nil {
+			continue
+		}
+
+		folder, err := jm.drive.GetFolder(driveId)
+
+		if err != nil {
+			// todo log
+			continue
+		}
+
+		jobs = append(jobs, &Job{
+			File: folder,
+			Path: path,
+		})
+	}
+
+	return jobs, nil
 }

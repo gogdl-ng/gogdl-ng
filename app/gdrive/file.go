@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 
 	"github.com/LegendaryB/gogdl-ng/app/utils"
@@ -11,14 +12,14 @@ import (
 	"google.golang.org/api/drive/v3"
 )
 
-func (service *DriveService) DownloadFile(driveFile *drive.File, path string) error {
+func (ds *DriveService) DownloadFile(driveFile *drive.File, path string) error {
 	return retry.Do(func() error {
-		service.logger.Infof("File: %s", driveFile.Name)
+		ds.logger.Infof("file: %s", driveFile.Name)
 
-		file, err := service.getDestinationFile(path, driveFile.Size)
+		file, err := ds.getDestinationFile(path, driveFile.Size)
 
 		if err != nil {
-			service.logger.Errorf("Failed to get destination file: %v", err)
+			ds.logger.Errorf("failed to get handle of destination file: %v", err)
 			return err
 		}
 
@@ -27,68 +28,77 @@ func (service *DriveService) DownloadFile(driveFile *drive.File, path string) er
 		fi, err := file.Stat()
 
 		if err != nil {
-			service.logger.Errorf("Failed to stat() file. %v", err)
+			ds.logger.Errorf("failed to stat() file. %v", err)
 			return err
 		}
 
 		if fi.Size() == driveFile.Size {
-			if err := service.compareChecksums(path, driveFile.Md5Checksum); err != nil {
+			if err := ds.compareChecksums(path, driveFile.Md5Checksum); err != nil {
 				return err
 			}
 
-			service.logger.Infof("Already completed. Skipping..")
+			ds.logger.Infof("Already completed. Skipping..")
 			return nil
 		}
 
-		request := service.drive.Files.Get(driveFile.Id).
-			SupportsAllDrives(true).
-			SupportsTeamDrives(true)
-
-		request.Header().Add("Range", fmt.Sprintf("bytes=%d-", fi.Size()))
-
-		response, err := request.Download()
+		response, err := ds.downloadFile(driveFile, fi.Size())
 
 		if err != nil {
-			service.logger.Errorf("Failed to fetch file. %v", err)
 			return err
 		}
 
 		_, err = io.Copy(file, response.Body)
 
 		if err != nil {
-			service.logger.Errorf("Failed to write buffer to file. %v", err)
+			ds.logger.Errorf("Failed to write buffer to file. %v", err)
 			return err
 		}
 
-		if err := service.compareChecksums(path, driveFile.Md5Checksum); err != nil {
+		if err := ds.compareChecksums(path, driveFile.Md5Checksum); err != nil {
 			return err
 		}
 
-		service.logger.Info("Finished file")
+		ds.logger.Info("Finished file")
 		return nil
-	}, retry.Attempts(service.conf.Download.RetryThreeshold))
+	}, retry.Attempts(ds.conf.Download.RetryThreeshold))
 }
 
-func (service *DriveService) compareChecksums(localFilePath string, remoteFileChecksum string) error {
+func (ds *DriveService) downloadFile(driveFile *drive.File, rangeStart int64) (*http.Response, error) {
+	request := ds.drive.Files.Get(driveFile.Id).
+		SupportsAllDrives(true).
+		SupportsTeamDrives(true)
+
+	request.Header().Add("Range", fmt.Sprintf("bytes=%d-", rangeStart))
+
+	response, err := request.Download()
+
+	if err != nil {
+		ds.logger.Errorf("failed to fetch content of file. %v", err)
+	}
+
+	return response, err
+}
+
+func (ds *DriveService) compareChecksums(localFilePath string, remoteFileChecksum string) error {
 	localFileChecksum, err := utils.GetMd5Checksum(localFilePath)
 
 	if err != nil {
-		service.logger.Errorf("Failed to calculate md5 checksum. %v", err)
+		ds.logger.Errorf("failed to calculate md5 checksum. %v", err)
 		return err
 	}
 
 	if localFileChecksum != remoteFileChecksum {
 		err = errors.New("MD5 checksum mismatch")
-		service.logger.Errorf("MD5 checksum of local file != MD5 checksum of remote file. %v", err)
+		ds.logger.Errorf("MD5 checksum of local file != MD5 checksum of remote file. %v", err)
 		return err
 	}
 
-	service.logger.Infof("MD5 checksums are matching!")
+	ds.logger.Infof("MD5 checksums are matching!")
 
 	return nil
 }
 
-func (service *DriveService) getDestinationFile(path string, maxSize int64) (*os.File, error) {
+func (ds *DriveService) getDestinationFile(path string, maxSize int64) (*os.File, error) {
 	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	if err != nil {
@@ -102,7 +112,7 @@ func (service *DriveService) getDestinationFile(path string, maxSize int64) (*os
 	}
 
 	if stat.Size() > maxSize {
-		service.logger.Warnf("Size of local file > size of remote file. File will be truncated because it is probably corrupted.")
+		ds.logger.Warnf("size of local file > size of remote file. file will be truncated because it is probably corrupted.")
 
 		if err = truncate(file); err != nil {
 			return nil, err

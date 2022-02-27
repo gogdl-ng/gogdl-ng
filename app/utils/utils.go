@@ -4,8 +4,6 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
-	"io/fs"
-	"io/ioutil"
 	"os"
 )
 
@@ -25,24 +23,4 @@ func GetMd5Checksum(path string) (string, error) {
 	}
 
 	return fmt.Sprintf("%x", hash.Sum(nil)), nil
-}
-
-func Subfolders(path string) ([]fs.FileInfo, error) {
-	items, err := ioutil.ReadDir(path)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var subfolders []fs.FileInfo
-
-	for _, item := range items {
-		if !item.IsDir() {
-			continue
-		}
-
-		subfolders = append(subfolders, item)
-	}
-
-	return subfolders, nil
 }

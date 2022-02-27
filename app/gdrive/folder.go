@@ -9,14 +9,14 @@ import (
 const serviceQuery = "nextPageToken, files(id, name, size, md5Checksum, mimeType, trashed)"
 const folderMimeType = "application/vnd.google-apps.folder"
 
-func (service *DriveService) GetFilesFromFolder(folder *drive.File) ([]*drive.File, error) {
+func (s *DriveService) GetFiles(folder *drive.File) ([]*drive.File, error) {
 	var children []*drive.File
 	var nextPageToken string
 
 	for {
 		query := fmt.Sprintf("'%s' in parents and mimeType != '%s' and trashed=false", folder.Id, folderMimeType)
 
-		serviceListCall := service.drive.Files.List().
+		serviceListCall := s.drive.Files.List().
 			OrderBy("name").
 			PageSize(100).
 			SupportsAllDrives(true).
@@ -33,7 +33,7 @@ func (service *DriveService) GetFilesFromFolder(folder *drive.File) ([]*drive.Fi
 		list, err := serviceListCall.Do()
 
 		if err != nil {
-			service.logger.Errorf("Failed to execute drive service call. %v", err)
+			s.logger.Errorf("failed to execute Google Drive api request. %v", err)
 			return nil, err
 		}
 
@@ -49,21 +49,21 @@ func (service *DriveService) GetFilesFromFolder(folder *drive.File) ([]*drive.Fi
 	return children, nil
 }
 
-func (service *DriveService) GetFolderById(folderId string) (*drive.File, error) {
-	serviceGetCall := service.drive.Files.Get(folderId).
+func (s *DriveService) GetFolder(folderId string) (*drive.File, error) {
+	serviceGetCall := s.drive.Files.Get(folderId).
 		SupportsAllDrives(true).
 		SupportsTeamDrives(true)
 
 	file, err := serviceGetCall.Do()
 
 	if err != nil {
-		service.logger.Errorf("Failed to execute drive service call. %v", err)
+		s.logger.Errorf("failed to execute Google Drive api request. %v", err)
 		return nil, err
 	}
 
 	if file.MimeType != folderMimeType {
 		err = fmt.Errorf("resource with id '%s' is not a folder", file.Id)
-		service.logger.Error(err)
+		s.logger.Error(err)
 
 		return nil, err
 	}

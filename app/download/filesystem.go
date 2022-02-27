@@ -42,7 +42,7 @@ func createDownloadsDirectory(folderName string) (string, error) {
 	return path, nil
 }
 
-func (jm *JobManager) MoveToCompletedDirectory(job *Job) error {
+func (jm *JobManager) moveToCompletedDirectory(job *Job) error {
 	targetPath := filepath.Join(jm.CompletedDirectoryPath, filepath.Base(job.Path))
 
 	if err := os.MkdirAll(targetPath, 0644); err != nil {
@@ -69,4 +69,24 @@ func (jm *JobManager) MoveToCompletedDirectory(job *Job) error {
 	}
 
 	return nil
+}
+
+func (jm *JobManager) getSubfolders(path string) ([]string, error) {
+	items, err := ioutil.ReadDir(path)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var names []string
+
+	for _, item := range items {
+		if !item.IsDir() {
+			continue
+		}
+
+		names = append(names, filepath.Join(path, item.Name()))
+	}
+
+	return names, nil
 }
