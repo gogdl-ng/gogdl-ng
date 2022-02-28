@@ -1,125 +1,182 @@
 package gdrive
 
 import (
+	"crypto/md5"
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
+	"path/filepath"
 
-	"github.com/LegendaryB/gogdl-ng/app/utils"
 	"github.com/avast/retry-go"
 	"google.golang.org/api/drive/v3"
 )
 
-func (ds *DriveService) DownloadFile(driveFile *drive.File, path string) error {
+type DriveFile struct {
+	Remote     *drive.File
+	Descriptor *os.File
+	Path       string
+	Size       int64
+}
+
+func (ds *DriveService) DownloadFile(driveFile *DriveFile) error {
 	return retry.Do(func() error {
-		ds.logger.Infof("file: %s", driveFile.Name)
+		ds.logger.Infof("file: %s", driveFile.Remote.Name)
 
-		file, err := ds.getDestinationFile(path, driveFile.Size)
-
-		if err != nil {
-			ds.logger.Errorf("failed to get handle of destination file: %v", err)
+		if err := ds.getFileMetadata(driveFile); err != nil {
+			ds.logger.Errorf("failed to get file metadata. %v", err)
 			return err
 		}
 
-		defer file.Close()
+		defer driveFile.Descriptor.Close()
 
-		fi, err := file.Stat()
-
-		if err != nil {
-			ds.logger.Errorf("failed to stat() file. %v", err)
-			return err
-		}
-
-		if fi.Size() == driveFile.Size {
-			if err := ds.compareChecksums(path, driveFile.Md5Checksum); err != nil {
-				return err
+		if driveFile.Size > 0 {
+			if ds.checkWhetherFileIsCompleted(driveFile) {
+				return nil
 			}
 
-			ds.logger.Infof("Already completed. Skipping..")
-			return nil
+			if ds.checkWhetherFileIsCorrupted(driveFile) {
+				if err := truncate(driveFile.Descriptor); err != nil {
+					ds.logger.Errorf("failed to truncate file. %v", err)
+					return err
+				}
+			}
 		}
 
-		response, err := ds.downloadFile(driveFile, fi.Size())
+		content, err := ds.requestFileContent(driveFile)
 
 		if err != nil {
+			ds.logger.Errorf("failed to fetch content of file. %v", err)
 			return err
 		}
 
-		_, err = io.Copy(file, response.Body)
+		w, err := io.Copy(driveFile.Descriptor, *content)
+		driveFile.Size = w
 
 		if err != nil {
-			ds.logger.Errorf("Failed to write buffer to file. %v", err)
+			ds.logger.Errorf("Failed to write fetched content to file. %v", err)
 			return err
 		}
 
-		if err := ds.compareChecksums(path, driveFile.Md5Checksum); err != nil {
+		md5Checksum, err := getMd5Checksum(driveFile)
+
+		if err != nil {
+			ds.logger.Errorf("failed to calculate md5 checksum. %v", err)
 			return err
 		}
 
-		ds.logger.Info("Finished file")
+		if md5Checksum != driveFile.Remote.Md5Checksum {
+			err := errors.New("checksum of local file != checksum of remote file. file is probably corrupted")
+			ds.logger.Error(err)
+			return err
+		}
+
+		ds.logger.Info("finished downloading file")
+
 		return nil
 	}, retry.Attempts(ds.conf.Download.RetryThreeshold))
 }
 
-func (ds *DriveService) downloadFile(driveFile *drive.File, rangeStart int64) (*http.Response, error) {
-	request := ds.drive.Files.Get(driveFile.Id).
+func (ds *DriveService) checkWhetherFileIsCompleted(driveFile *DriveFile) bool {
+	if driveFile.Size == driveFile.Remote.Size {
+		md5Checksum, err := getMd5Checksum(driveFile)
+
+		if err != nil {
+			ds.logger.Errorf("failed to calculate md5 checksum. %v", err)
+			return false
+		}
+
+		if md5Checksum != driveFile.Remote.Md5Checksum {
+			return false
+		}
+	}
+
+	ds.logger.Info("file is already completed")
+
+	return true
+}
+
+func (ds *DriveService) checkWhetherFileIsCorrupted(driveFile *DriveFile) bool {
+	if driveFile.Size > driveFile.Remote.Size {
+		ds.logger.Warnf("size of local file > size of remote file. file is probably corrupted.")
+		return true
+	}
+
+	return false
+}
+
+func (ds *DriveService) requestFileContent(driveFile *DriveFile) (*io.ReadCloser, error) {
+	request := ds.drive.Files.Get(driveFile.Remote.Id).
 		SupportsAllDrives(true).
 		SupportsTeamDrives(true)
 
-	request.Header().Add("Range", fmt.Sprintf("bytes=%d-", rangeStart))
+	request.Header().Add("Range", fmt.Sprintf("bytes=%d-", driveFile.Size))
 
 	response, err := request.Download()
 
 	if err != nil {
-		ds.logger.Errorf("failed to fetch content of file. %v", err)
+		return nil, err
 	}
 
-	return response, err
+	return &response.Body, err
 }
 
-func (ds *DriveService) compareChecksums(localFilePath string, remoteFileChecksum string) error {
-	localFileChecksum, err := utils.GetMd5Checksum(localFilePath)
-
-	if err != nil {
-		ds.logger.Errorf("failed to calculate md5 checksum. %v", err)
+func (ds *DriveService) getFileMetadata(driveFile *DriveFile) error {
+	if err := getFileDescriptor(driveFile); err != nil {
 		return err
 	}
 
-	if localFileChecksum != remoteFileChecksum {
-		err = errors.New("MD5 checksum mismatch")
-		ds.logger.Errorf("MD5 checksum of local file != MD5 checksum of remote file. %v", err)
+	if err := getFileSize(driveFile); err != nil {
 		return err
 	}
-
-	ds.logger.Infof("MD5 checksums are matching!")
 
 	return nil
 }
 
-func (ds *DriveService) getDestinationFile(path string, maxSize int64) (*os.File, error) {
-	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+func getFileDescriptor(driveFile *DriveFile) error {
+	if err := os.MkdirAll(filepath.Dir(driveFile.Path), 0644); err != nil {
+		return err
+	}
+
+	descriptor, err := os.OpenFile(driveFile.Path, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	stat, err := file.Stat()
+	driveFile.Descriptor = descriptor
+
+	return nil
+}
+
+func getFileSize(driveFile *DriveFile) error {
+	stat, err := driveFile.Descriptor.Stat()
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if stat.Size() > maxSize {
-		ds.logger.Warnf("size of local file > size of remote file. file will be truncated because it is probably corrupted.")
+	driveFile.Size = stat.Size()
 
-		if err = truncate(file); err != nil {
-			return nil, err
-		}
+	return nil
+}
+
+func getMd5Checksum(driveFile *DriveFile) (string, error) {
+	hash := md5.New()
+
+	_, err := driveFile.Descriptor.Seek(0, io.SeekStart)
+
+	if err != nil {
+		return "", err
 	}
 
-	return file, nil
+	if _, err := io.Copy(hash, driveFile.Descriptor); err != nil {
+		return "", err
+	}
+
+	md5Checksum := fmt.Sprintf("%x", hash.Sum(nil))
+
+	return md5Checksum, nil
 }
 
 func truncate(file *os.File) error {

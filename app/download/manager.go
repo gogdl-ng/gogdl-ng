@@ -83,10 +83,10 @@ func (jm *JobManager) RunJob(job *Job) {
 	}
 
 	for _, driveFile := range files {
-		path := jm.getFileTargetPath(job, driveFile)
+		jm.setFileTargetPath(job, driveFile)
 
-		if err := jm.drive.DownloadFile(driveFile, path); err != nil {
-			jm.logger.Errorf("failed to download file (name: %s, id: %s). %v", driveFile.Name, driveFile.Id, err)
+		if err := jm.drive.DownloadFile(driveFile); err != nil {
+			jm.logger.Errorf("failed to download file (name: %s, id: %s). %v", driveFile.Remote.Name, driveFile.Remote.Id, err)
 		}
 	}
 
@@ -117,11 +117,11 @@ func (jm *JobManager) CreateJob(driveId string) error {
 }
 
 func (jm *JobManager) FinishJob(job *Job) error {
-	if err := jm.removeDriveIdFile(job.Path); err != nil {
+	if err := jm.moveToCompletedDirectory(job); err != nil {
 		return err
 	}
 
-	if err := jm.moveToCompletedDirectory(job); err != nil {
+	if err := jm.removeDriveIdFile(job.Path); err != nil {
 		return err
 	}
 
