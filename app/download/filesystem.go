@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/LegendaryB/gogdl-ng/app/gdrive"
 	"google.golang.org/api/drive/v3"
 )
 
@@ -22,8 +23,8 @@ func (jm *JobManager) createJobDirectory(driveFolder *drive.File) (string, error
 	return path, nil
 }
 
-func (jm *JobManager) getFileTargetPath(job *Job, driveFile *drive.File) string {
-	return filepath.Join(job.Path, driveFile.Name)
+func (jm *JobManager) setFileTargetPath(job *Job, driveFile *gdrive.DriveFile) {
+	driveFile.Path = filepath.Join(job.Path, driveFile.Path)
 }
 
 func createDownloadsDirectory(folderName string) (string, error) {
@@ -56,10 +57,14 @@ func (jm *JobManager) moveToCompletedDirectory(job *Job) error {
 	}
 
 	for _, item := range items {
-		sourcefp := filepath.Join(job.Path, item.Name())
-		targetfp := filepath.Join(targetPath, item.Name())
+		if item.Name() == driveIdFileName {
+			continue
+		}
 
-		if err := os.Rename(sourcefp, targetfp); err != nil {
+		sourcePath := filepath.Join(job.Path, item.Name())
+		targetPath = filepath.Join(targetPath, item.Name())
+
+		if err := os.Rename(sourcePath, targetPath); err != nil {
 			return err
 		}
 	}
