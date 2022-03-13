@@ -18,7 +18,13 @@ func (s *DriveService) getFiles(folder *drive.File, path string) ([]*DriveFile, 
 	var nextPageToken string
 
 	for {
-		query := fmt.Sprintf("'%s' in parents and trashed=false", folder.Id)
+		query := fmt.Sprintf("'%s' in parents", folder.Id)
+
+		if len(s.conf.GDrive.Query) > 0 {
+			query = fmt.Sprintf("%s and %s", query, s.conf.GDrive.Query)
+		}
+
+		//query := fmt.Sprintf("'%s' in parents and trashed=false", folder.Id)
 
 		fileList, err := s.requestFiles(query, nextPageToken)
 
