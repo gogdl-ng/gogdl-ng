@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 )
@@ -21,11 +22,16 @@ type DownloadConfiguration struct {
 	RetryThreeshold uint
 }
 
+type GDriveConfiguration struct {
+	Query string
+}
+
 type Configuration struct {
 	path string
 
 	Application ApplicationConfiguration
 	Queue       QueueConfiguration
+	GDrive      GDriveConfiguration
 	Download    DownloadConfiguration
 }
 
@@ -49,6 +55,7 @@ func NewConfigurationFromFile() (*Configuration, error) {
 	}
 
 	conf.path = path
+	conf.GDrive.Query = strings.TrimSpace(conf.GDrive.Query)
 
 	return &conf, nil
 }
