@@ -8,16 +8,12 @@ import (
 	"github.com/LegendaryB/gogdl-ng/app/api/v1"
 	"github.com/LegendaryB/gogdl-ng/app/config"
 	"github.com/LegendaryB/gogdl-ng/app/download"
-	"github.com/LegendaryB/gogdl-ng/app/env"
+	"github.com/LegendaryB/gogdl-ng/app/gdrive"
 	"github.com/LegendaryB/gogdl-ng/app/logging"
 	"github.com/gorilla/mux"
 )
 
 func Run() {
-	if err := env.NewEnvironment(); err != nil {
-		log.Fatalf("Failed to initialize environment. %v", err)
-	}
-
 	conf, err := config.NewConfigurationFromFile()
 
 	if err != nil {
@@ -30,24 +26,28 @@ func Run() {
 		log.Fatalf("Failed to initialize logger. %s", err)
 	}
 
-	downloader, err := download.NewDownloader(&conf.Transfer, logger)
+	drive, err := gdrive.NewDriveService(conf, logger)
 
 	if err != nil {
-		logger.Fatalf("Failed to initialize Downloader service. %v", err)
+		logger.Fatalf("Failed to create Google Drive service. %v", err)
+	}
+
+	jobManager, err := download.NewJobManager(logger, conf, drive)
+
+	if err != nil {
+		logger.Fatalf("Failed to create job manager. %v", err)
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
 	router = router.PathPrefix("/api/v1").Subrouter()
 
-	jobController := api.NewJobController(logger, downloader)
+	controller := api.NewJobController(logger, jobManager)
 
-	router.HandleFunc("/jobs", jobController.CreateDownloadJob()).Methods("POST")
+	router.HandleFunc("/jobs", controller.CreateJob()).Methods("POST")
 
 	go listenAndServe(router, conf.Application.ListenPort)
 
-	if err := downloader.Run(); err != nil {
-		logger.Fatal(err)
-	}
+	jobManager.Run()
 }
 
 func listenAndServe(router *mux.Router, listenPort int) {
