@@ -6,6 +6,7 @@
 [![forthebadge](https://forthebadge.com/images/badges/made-with-go.svg)](https://forthebadge.com)
 
 [![GitHub license](https://img.shields.io/github/license/gogdl-ng/gogdl-ng.svg?longCache=true&style=flat-square)](https://github.com/gogdl-ng/gogdl-ng/blob/main/LICENSE)
+[![GitHub license](https://img.shields.io/docker/v/legendaryb/gogdl-ng/latest?longCache=true&style=flat-square)](https://hub.docker.com/r/legendaryb/gogdl-ng)
 
 A self-hostable application to download files in a folder from Google Drive powered by Go.
 </div><br>
