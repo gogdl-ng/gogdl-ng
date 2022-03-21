@@ -40,7 +40,11 @@ logFilePath = "./config/gogdl-ng.log"
 size = 1000
 
 # Defines how many workers can run concurrently.
-maxWorkers = 5
+maxWorkers = 2
+
+[gdrive]
+# query string which will be appended to the base query which is: "'%drive_folder_id%' in parents and"
+query = "trashed=false"
 
 [download]
 # Defines how many times a failed download should be retried.
